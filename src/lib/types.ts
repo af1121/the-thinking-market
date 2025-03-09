@@ -47,6 +47,10 @@ export interface Agent {
   inventory: number;
   active: boolean;
   parameters: Record<string, number>;
+  
+  // Adding the missing methods that are used in the simulation engine
+  makeDecision(state: MarketState): Order | null;
+  updatePositionAfterTrade(price: number, quantity: number, side: OrderSide): void;
 }
 
 export interface OrderBookLevel {
