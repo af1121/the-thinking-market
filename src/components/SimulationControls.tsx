@@ -5,14 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { SimulationParameters } from '@/lib/types';
+import { SimulationParameters, MarketEventType } from '@/lib/types';
 
 interface SimulationControlsProps {
   parameters: SimulationParameters;
   speed: number;
   onUpdateParameters: (params: Partial<SimulationParameters>) => void;
   onSpeedChange: (speed: number) => void;
-  onInjectEvent: (type: 'news' | 'liquidity_shock' | 'price_shock', magnitude: number) => void;
+  onInjectEvent: (type: MarketEventType, magnitude: number) => void;
   className?: string;
 }
 
@@ -115,7 +115,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               size="sm"
               variant="outline"
               className="border-accent-foreground/30 hover:border-accent-foreground/60"
-              onClick={() => onInjectEvent('news', 0.05)}
+              onClick={() => onInjectEvent(MarketEventType.NEWS, 0.05)}
             >
               Positive News (+5%)
             </Button>
@@ -123,7 +123,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               size="sm"
               variant="outline"
               className="border-accent-foreground/30 hover:border-accent-foreground/60"
-              onClick={() => onInjectEvent('news', -0.05)}
+              onClick={() => onInjectEvent(MarketEventType.NEWS, -0.05)}
             >
               Negative News (-5%)
             </Button>
@@ -131,7 +131,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               size="sm"
               variant="outline"
               className="border-accent-foreground/30 hover:border-accent-foreground/60"
-              onClick={() => onInjectEvent('liquidity_shock', 0.5)}
+              onClick={() => onInjectEvent(MarketEventType.LIQUIDITY_SHOCK, 0.5)}
             >
               Liquidity Shock
             </Button>
@@ -139,9 +139,25 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
               size="sm"
               variant="outline"
               className="border-accent-foreground/30 hover:border-accent-foreground/60"
-              onClick={() => onInjectEvent('price_shock', 0.1)}
+              onClick={() => onInjectEvent(MarketEventType.PRICE_SHOCK, 0.1)}
             >
               Price Spike (+10%)
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-accent-foreground/30 hover:border-accent-foreground/60"
+              onClick={() => onInjectEvent(MarketEventType.VOLATILITY_SPIKE, 0.3)}
+            >
+              Volatility Spike
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-accent-foreground/30 hover:border-accent-foreground/60"
+              onClick={() => onInjectEvent(MarketEventType.FLASH_CRASH, 0.15)}
+            >
+              Flash Crash
             </Button>
           </div>
         </div>

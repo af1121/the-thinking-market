@@ -3,10 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, BarChart, Bar } from 'recharts';
-import { AgentType, MarketEvent, VolatilityAnalytics } from '@/lib/types';
+import { AgentType, MarketEvent, VolatilityAnalytics as VolatilityAnalyticsType } from '@/lib/types';
 
 interface VolatilityAnalyticsProps {
-  analytics: VolatilityAnalytics;
+  analytics: VolatilityAnalyticsType;
   className?: string;
   height?: number;
 }
@@ -24,7 +24,7 @@ const VolatilityAnalytics: React.FC<VolatilityAnalyticsProps> = ({
       name: agentType,
       contribution: agentContribution[agentType as AgentType].reduce(
         (sum, val) => sum + val, 0
-      ) / agentContribution[agentType as AgentType].length
+      ) / (agentContribution[agentType as AgentType].length || 1)
     };
   });
 

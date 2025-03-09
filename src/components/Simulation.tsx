@@ -8,7 +8,7 @@ import SimulationControls from './SimulationControls';
 import MetricsPanel from './MetricsPanel';
 import MarketInterventions from './MarketInterventions';
 import VolatilityAnalytics from './VolatilityAnalytics';
-import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType } from '@/lib/types';
+import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType, MarketEventType } from '@/lib/types';
 import { SimulationEngine } from '@/lib/simulationEngine';
 
 const Simulation: React.FC = () => {
@@ -106,7 +106,7 @@ const Simulation: React.FC = () => {
     updateState();
   }, [engine, updateState]);
 
-  const handleInjectEvent = useCallback((eventType: 'news' | 'liquidity_shock' | 'price_shock' | 'volatility_spike' | 'flash_crash', magnitude: number) => {
+  const handleInjectEvent = useCallback((eventType: MarketEventType, magnitude: number) => {
     engine.injectMarketEvent(eventType, magnitude);
     updateState();
   }, [engine, updateState]);

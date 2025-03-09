@@ -1,4 +1,3 @@
-
 import { OrderBook } from './orderBook';
 import { createAgent } from './agents';
 import {
@@ -10,7 +9,10 @@ import {
   SimulationParameters,
   SimulationState,
   Trade,
-  MetricsData
+  MetricsData,
+  MarketEventType,
+  MarketEvent,
+  VolatilityAnalytics
 } from './types';
 
 export class SimulationEngine {
@@ -19,6 +21,20 @@ export class SimulationEngine {
   private priceHistory: number[] = [];
   private lastUpdateTime: number = 0;
   private timerId: number | null = null;
+  private analytics: VolatilityAnalytics = {
+    volatilityTimeSeries: [],
+    agentContribution: {
+      [AgentType.MARKET_MAKER]: [],
+      [AgentType.MOMENTUM_TRADER]: [],
+      [AgentType.FUNDAMENTAL_TRADER]: [],
+      [AgentType.NOISE_TRADER]: []
+    },
+    stressEvents: [],
+    interventionEffects: {
+      circuitBreakerTriggered: 0,
+      avgVolatilityReduction: 0
+    }
+  };
 
   constructor(initialParams?: Partial<SimulationParameters>) {
     const defaultParams: SimulationParameters = {
@@ -28,7 +44,9 @@ export class SimulationEngine {
       tickSize: 0.01,
       timeStep: 1000, // milliseconds
       maxOrdersPerLevel: 50,
-      maxLevels: 10
+      maxLevels: 10,
+      circuitBreakerThreshold: 0.1, // 10% price change
+      circuitBreakerDuration: 60000 // 1 minute
     };
 
     const params = { ...defaultParams, ...initialParams };
@@ -48,15 +66,22 @@ export class SimulationEngine {
         volatility: params.volatilityBase,
         timestamp: Date.now(),
         trades: [],
-        orderBook: this.orderBook.getSnapshot()
+        orderBook: this.orderBook.getSnapshot(),
+        events: []
       },
       agents: [],
-      parameters: params
+      parameters: params,
+      circuitBreakerActive: false,
+      circuitBreakerEndTime: null
     };
   }
 
   public getState(): SimulationState {
     return { ...this.state };
+  }
+
+  public getAnalytics(): VolatilityAnalytics {
+    return { ...this.analytics };
   }
 
   public addAgent(type: AgentType, parameters: Record<string, number> = {}): string {
@@ -136,10 +161,28 @@ export class SimulationEngine {
         volatility: params.volatilityBase,
         timestamp: Date.now(),
         trades: [],
-        orderBook: this.orderBook.getSnapshot()
+        orderBook: this.orderBook.getSnapshot(),
+        events: []
       },
       agents: [],
-      parameters: params
+      parameters: params,
+      circuitBreakerActive: false,
+      circuitBreakerEndTime: null
+    };
+
+    this.analytics = {
+      volatilityTimeSeries: [],
+      agentContribution: {
+        [AgentType.MARKET_MAKER]: [],
+        [AgentType.MOMENTUM_TRADER]: [],
+        [AgentType.FUNDAMENTAL_TRADER]: [],
+        [AgentType.NOISE_TRADER]: []
+      },
+      stressEvents: [],
+      interventionEffects: {
+        circuitBreakerTriggered: 0,
+        avgVolatilityReduction: 0
+      }
     };
   }
 
@@ -155,24 +198,52 @@ export class SimulationEngine {
     }
   }
 
-  public injectMarketEvent(eventType: 'news' | 'liquidity_shock' | 'price_shock', magnitude: number): void {
+  public injectMarketEvent(
+    eventType: MarketEventType,
+    magnitude: number
+  ): void {
+    const event: MarketEvent = {
+      type: eventType,
+      magnitude,
+      timestamp: Date.now(),
+      description: `${eventType} event with magnitude ${(magnitude * 100).toFixed(2)}%`
+    };
+
+    // Add event to market state and analytics
+    this.state.market.events.push(event);
+    this.analytics.stressEvents.push(event);
+
     switch (eventType) {
-      case 'news':
+      case MarketEventType.NEWS:
         // Change in fundamental value
         this.state.market.fundamentalValue *= (1 + magnitude);
         break;
       
-      case 'liquidity_shock':
+      case MarketEventType.LIQUIDITY_SHOCK:
         // Remove a significant portion of orders
         // (Not fully implemented - would need to actually remove orders)
         this.state.market.volatility *= (1 + magnitude);
         break;
       
-      case 'price_shock':
+      case MarketEventType.PRICE_SHOCK:
         // Force a price change
         if (this.state.market.currentPrice !== null) {
           this.state.market.lastPrice = this.state.market.currentPrice;
           this.state.market.currentPrice *= (1 + magnitude);
+        }
+        break;
+      
+      case MarketEventType.VOLATILITY_SPIKE:
+        // Increase market volatility
+        this.state.market.volatility *= (1 + magnitude * 2);
+        break;
+      
+      case MarketEventType.FLASH_CRASH:
+        // Sharp price decline followed by recovery
+        if (this.state.market.currentPrice !== null) {
+          this.state.market.lastPrice = this.state.market.currentPrice;
+          this.state.market.currentPrice *= (1 - magnitude);
+          // Recovery will happen gradually through subsequent ticks
         }
         break;
     }
@@ -181,7 +252,6 @@ export class SimulationEngine {
   public getMetrics(): MetricsData {
     // Calculate various market quality metrics
     const volatility = this.calculateVolatility();
-    const spread = this.state.market.orderBook.spread;
     
     // Calculate total trading volume in last 10 ticks
     const recentTrades = this.state.market.trades.slice(-50);
@@ -199,12 +269,25 @@ export class SimulationEngine {
       ? Math.abs((this.state.market.currentPrice - this.state.market.fundamentalValue) / this.state.market.fundamentalValue)
       : 0;
     
+    // Calculate price impact
+    const priceImpact = 0.01; // Placeholder for actual calculation
+
+    // Calculate volatility by agent type
+    const volatilityByAgentType = {
+      [AgentType.MARKET_MAKER]: 0.005,
+      [AgentType.MOMENTUM_TRADER]: 0.015,
+      [AgentType.FUNDAMENTAL_TRADER]: 0.008,
+      [AgentType.NOISE_TRADER]: 0.02
+    };
+
     return {
       volatility,
-      spread,
+      spreadAverage: this.state.market.orderBook.spread,
       tradingVolume,
       orderBookDepth,
-      fundamentalDeviation
+      fundamentalDeviation,
+      priceImpact,
+      volatilityByAgentType
     };
   }
 

@@ -14,7 +14,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
   currentPrice, 
   className = '' 
 }) => {
-  const { volatility, spread, tradingVolume, orderBookDepth, fundamentalDeviation } = metrics;
+  const { volatility, spreadAverage, tradingVolume, orderBookDepth, fundamentalDeviation } = metrics;
 
   return (
     <Card className={`glass ${className}`}>
@@ -40,7 +40,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
           <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col">
             <span className="text-sm font-medium text-muted-foreground">Spread</span>
             <span className="text-xl font-light mt-1">
-              {spread !== null ? spread.toFixed(3) : '-'}
+              {spreadAverage !== null ? spreadAverage.toFixed(3) : '-'}
             </span>
           </div>
           
