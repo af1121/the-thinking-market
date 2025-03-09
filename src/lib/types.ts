@@ -18,6 +18,22 @@ export enum OrderSide {
   SELL = 'SELL',
 }
 
+// Market event types for studying stress periods
+export enum MarketEventType {
+  NEWS = 'news',                       // Fundamental value changes
+  LIQUIDITY_SHOCK = 'liquidity_shock', // Sudden liquidity withdrawal
+  PRICE_SHOCK = 'price_shock',         // Sudden price movement
+  VOLATILITY_SPIKE = 'volatility_spike', // Increased market volatility
+  FLASH_CRASH = 'flash_crash',         // Rapid price decline and recovery
+}
+
+export interface MarketEvent {
+  type: MarketEventType;
+  magnitude: number;
+  timestamp: number;
+  description: string;
+}
+
 export interface Order {
   id: string;
   agentId: string;
@@ -74,6 +90,7 @@ export interface MarketState {
   timestamp: number;
   trades: Trade[];
   orderBook: OrderBookSnapshot;
+  events: MarketEvent[];  // Track market events
 }
 
 export interface SimulationParameters {
@@ -84,6 +101,8 @@ export interface SimulationParameters {
   timeStep: number;
   maxOrdersPerLevel: number;
   maxLevels: number;
+  circuitBreakerThreshold: number;  // % price change to trigger circuit breaker
+  circuitBreakerDuration: number;   // Duration in milliseconds
 }
 
 export interface SimulationState {
@@ -95,6 +114,8 @@ export interface SimulationState {
   market: MarketState;
   agents: Agent[];
   parameters: SimulationParameters;
+  circuitBreakerActive: boolean;     // Flag for circuit breaker state
+  circuitBreakerEndTime: number | null;  // When circuit breaker ends
 }
 
 // For chart data
@@ -106,8 +127,21 @@ export interface PricePoint {
 
 export interface MetricsData {
   volatility: number;
-  spread: number | null;
+  spreadAverage: number | null;
   tradingVolume: number;
   orderBookDepth: number;
   fundamentalDeviation: number;
+  priceImpact: number;   // Average price movement per unit of volume
+  volatilityByAgentType: Record<AgentType, number>;  // Volatility contribution by agent type
+}
+
+// Analytics data for research purposes
+export interface VolatilityAnalytics {
+  volatilityTimeSeries: {time: number, volatility: number}[];
+  agentContribution: Record<AgentType, number[]>;
+  stressEvents: MarketEvent[];
+  interventionEffects: {
+    circuitBreakerTriggered: number;
+    avgVolatilityReduction: number;
+  };
 }

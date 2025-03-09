@@ -6,7 +6,9 @@ import PriceChart from './PriceChart';
 import AgentControls from './AgentControls';
 import SimulationControls from './SimulationControls';
 import MetricsPanel from './MetricsPanel';
-import { AgentType, MetricsData, SimulationState } from '@/lib/types';
+import MarketInterventions from './MarketInterventions';
+import VolatilityAnalytics from './VolatilityAnalytics';
+import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType } from '@/lib/types';
 import { SimulationEngine } from '@/lib/simulationEngine';
 
 const Simulation: React.FC = () => {
@@ -17,10 +19,33 @@ const Simulation: React.FC = () => {
   // Metrics state
   const [metrics, setMetrics] = useState<MetricsData>({
     volatility: 0,
-    spread: null,
+    spreadAverage: null,
     tradingVolume: 0,
     orderBookDepth: 0,
-    fundamentalDeviation: 0
+    fundamentalDeviation: 0,
+    priceImpact: 0,
+    volatilityByAgentType: {
+      [AgentType.MARKET_MAKER]: 0,
+      [AgentType.MOMENTUM_TRADER]: 0,
+      [AgentType.FUNDAMENTAL_TRADER]: 0,
+      [AgentType.NOISE_TRADER]: 0
+    }
+  });
+
+  // Analytics state
+  const [analytics, setAnalytics] = useState<AnalyticsType>({
+    volatilityTimeSeries: [],
+    agentContribution: {
+      [AgentType.MARKET_MAKER]: [],
+      [AgentType.MOMENTUM_TRADER]: [],
+      [AgentType.FUNDAMENTAL_TRADER]: [],
+      [AgentType.NOISE_TRADER]: []
+    },
+    stressEvents: [],
+    interventionEffects: {
+      circuitBreakerTriggered: 0,
+      avgVolatilityReduction: 0
+    }
   });
 
   // Function to update the UI state
@@ -28,6 +53,7 @@ const Simulation: React.FC = () => {
     const simulationState = engine.getState();
     setState(simulationState);
     setMetrics(engine.getMetrics());
+    setAnalytics(engine.getAnalytics());
   }, [engine]);
 
   // Set up a periodic update interval
@@ -80,7 +106,7 @@ const Simulation: React.FC = () => {
     updateState();
   }, [engine, updateState]);
 
-  const handleInjectEvent = useCallback((eventType: 'news' | 'liquidity_shock' | 'price_shock', magnitude: number) => {
+  const handleInjectEvent = useCallback((eventType: 'news' | 'liquidity_shock' | 'price_shock' | 'volatility_spike' | 'flash_crash', magnitude: number) => {
     engine.injectMarketEvent(eventType, magnitude);
     updateState();
   }, [engine, updateState]);
@@ -126,10 +152,21 @@ const Simulation: React.FC = () => {
             </div>
           </div>
           
-          <div className="lg:col-span-2">
-            <OrderBook orderBook={state.market.orderBook} className="h-full" />
+          <div className="lg:col-span-2 space-y-6">
+            <OrderBook orderBook={state.market.orderBook} />
+            
+            <MarketInterventions
+              parameters={state.parameters}
+              circuitBreakerActive={state.circuitBreakerActive}
+              onUpdateParameters={handleUpdateParameters}
+            />
           </div>
         </div>
+        
+        <VolatilityAnalytics 
+          analytics={analytics}
+          height={350}
+        />
       </main>
       
       <footer className="p-4 border-t border-border/40 text-center text-sm text-muted-foreground animate-fade-in">
