@@ -2,6 +2,7 @@
 import React from 'react';
 import { OrderBookSnapshot } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface OrderBookProps {
   orderBook: OrderBookSnapshot;
@@ -24,12 +25,21 @@ const OrderBook: React.FC<OrderBookProps> = ({ orderBook, className = '' }) => {
   };
 
   return (
-    <Card className={`glass ${className}`}>
+    <Card className={`glass ${className} animate-slide-up`}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-normal">Order Book</CardTitle>
+        <CardTitle className="text-lg font-medium flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-primary" />
+          Order Book
+        </CardTitle>
         <div className="flex justify-between text-sm mt-1">
-          <span>Spread: {spread !== null ? spread.toFixed(3) : '-'}</span>
-          <span>Mid Price: {midPrice !== null ? midPrice.toFixed(2) : '-'}</span>
+          <span className="flex items-center gap-1">
+            <TrendingDown className="w-4 h-4 text-ask" />
+            Spread: {spread !== null ? spread.toFixed(3) : '-'}
+          </span>
+          <span className="flex items-center gap-1">
+            <TrendingUp className="w-4 h-4 text-neutral" />
+            Mid Price: {midPrice !== null ? midPrice.toFixed(2) : '-'}
+          </span>
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-2">
@@ -42,21 +52,21 @@ const OrderBook: React.FC<OrderBookProps> = ({ orderBook, className = '' }) => {
               asks.slice().reverse().map((level) => (
                 <div 
                   key={`ask-${level.price}`} 
-                  className="relative flex justify-between p-1 text-sm order-book-ask rounded-sm"
+                  className="relative flex justify-between p-1 text-sm order-book-ask rounded-sm hover:shadow-md transition-all duration-200"
                 >
                   <div 
-                    className="absolute inset-0 bg-ask/5 rounded-sm" 
+                    className="absolute inset-0 bg-ask/5 rounded-sm transition-all duration-300 hover:bg-ask/10" 
                     style={{ width: `${getWidthPercentage(level.quantity)}%` }}
                   />
-                  <span className="relative z-10">{level.price.toFixed(2)}</span>
-                  <span className="relative z-10">{level.quantity}</span>
+                  <span className="relative z-10 font-semibold">{level.price.toFixed(2)}</span>
+                  <span className="relative z-10 font-semibold">{level.quantity}</span>
                 </div>
               ))
             )}
           </div>
           
           {/* Price indicator */}
-          <div className="flex justify-between py-2 px-1 border-y border-border/50 my-2 text-sm">
+          <div className="flex justify-between py-2 px-1 border-y border-border/50 my-2 text-sm font-medium">
             <span>Price</span>
             <span>Quantity</span>
           </div>
@@ -69,14 +79,14 @@ const OrderBook: React.FC<OrderBookProps> = ({ orderBook, className = '' }) => {
               bids.map((level) => (
                 <div 
                   key={`bid-${level.price}`} 
-                  className="relative flex justify-between p-1 text-sm order-book-bid rounded-sm"
+                  className="relative flex justify-between p-1 text-sm order-book-bid rounded-sm hover:shadow-md transition-all duration-200"
                 >
                   <div 
-                    className="absolute inset-0 bg-bid/5 rounded-sm" 
+                    className="absolute inset-0 bg-bid/5 rounded-sm transition-all duration-300 hover:bg-bid/10" 
                     style={{ width: `${getWidthPercentage(level.quantity)}%` }}
                   />
-                  <span className="relative z-10">{level.price.toFixed(2)}</span>
-                  <span className="relative z-10">{level.quantity}</span>
+                  <span className="relative z-10 font-semibold">{level.price.toFixed(2)}</span>
+                  <span className="relative z-10 font-semibold">{level.quantity}</span>
                 </div>
               ))
             )}
