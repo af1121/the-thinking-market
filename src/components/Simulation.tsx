@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
 import OrderBook from './OrderBook';
@@ -7,8 +6,8 @@ import AgentControls from './AgentControls';
 import SimulationControls from './SimulationControls';
 import MetricsPanel from './MetricsPanel';
 import MarketInterventions from './MarketInterventions';
-import VolatilityAnalytics from './VolatilityAnalytics';
-import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType, MarketEventType } from '@/lib/types';
+import TabSection from './TabSection';
+import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType, MarketEventType, SimulationParameters } from '@/lib/types';
 import { SimulationEngine } from '@/lib/simulationEngine';
 import { toast } from 'sonner';
 
@@ -16,6 +15,7 @@ const Simulation: React.FC = () => {
   // Create simulation engine instance
   const [engine] = useState(() => new SimulationEngine());
   const [state, setState] = useState<SimulationState>(engine.getState());
+  const [activeTab, setActiveTab] = useState('market');
 
   // Metrics state
   const [metrics, setMetrics] = useState<MetricsData>({
@@ -187,7 +187,7 @@ const Simulation: React.FC = () => {
     updateState();
   }, [engine, updateState]);
 
-  const handleUpdateParameters = useCallback((params: any) => {
+  const handleUpdateParameters = useCallback((params: Partial<SimulationParameters>) => {
     engine.updateParameters(params);
     updateState();
     toast("Simulation parameters updated!");
@@ -232,47 +232,50 @@ const Simulation: React.FC = () => {
           currentPrice={state.market.currentPrice}
         />
         
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3 space-y-6">
-            <PriceChart 
-              trades={state.market.trades} 
-              fundamentalValue={state.market.fundamentalValue}
-              height={300}
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SimulationControls 
-                parameters={state.parameters}
-                speed={state.speed}
-                onUpdateParameters={handleUpdateParameters}
-                onSpeedChange={handleSpeedChange}
-                onInjectEvent={handleInjectEvent}
+        <TabSection 
+          activeTab={activeTab}
+          analytics={analytics}
+          onTabChange={setActiveTab}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3 space-y-6">
+              <PriceChart 
+                trades={state.market.trades} 
+                fundamentalValue={state.market.fundamentalValue}
+                height={300}
               />
               
-              <AgentControls 
-                agents={state.agents}
-                onAddAgent={handleAddAgent}
-                onRemoveAgent={handleRemoveAgent}
-                onToggleAgent={handleToggleAgent}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <SimulationControls 
+                    parameters={state.parameters}
+                    speed={state.speed}
+                    onUpdateParameters={handleUpdateParameters}
+                    onSpeedChange={handleSpeedChange}
+                    onInjectEvent={handleInjectEvent}
+                  />
+                  
+                  <MarketInterventions
+                    parameters={state.parameters}
+                    circuitBreakerActive={state.circuitBreakerActive}
+                    onUpdateParameters={handleUpdateParameters}
+                  />
+                </div>
+                
+                <AgentControls 
+                  agents={state.agents}
+                  onAddAgent={handleAddAgent}
+                  onRemoveAgent={handleRemoveAgent}
+                  onToggleAgent={handleToggleAgent}
+                />
+              </div>
+            </div>
+            
+            <div className="lg:col-span-2">
+              <OrderBook orderBook={state.market.orderBook} />
             </div>
           </div>
-          
-          <div className="lg:col-span-2 space-y-6">
-            <OrderBook orderBook={state.market.orderBook} />
-            
-            <MarketInterventions
-              parameters={state.parameters}
-              circuitBreakerActive={state.circuitBreakerActive}
-              onUpdateParameters={handleUpdateParameters}
-            />
-          </div>
-        </div>
-        
-        <VolatilityAnalytics 
-          analytics={analytics}
-          height={350}
-        />
+        </TabSection>
       </main>
       
       <footer className="p-4 border-t border-border/40 text-center text-sm text-muted-foreground animate-fade-in">

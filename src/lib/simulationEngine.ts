@@ -339,6 +339,22 @@ export class SimulationEngine {
     
     this.state.tick++;
     
+    // Check if circuit breaker should end
+    if (this.state.circuitBreakerActive && 
+        this.state.circuitBreakerEndTime !== null && 
+        currentTime >= this.state.circuitBreakerEndTime) {
+      this.state.circuitBreakerActive = false;
+      this.state.circuitBreakerEndTime = null;
+      
+      // Record volatility reduction effect
+      const volatilityBefore = this.state.market.volatility;
+      // Record approximate volatility reduction (simple simulation)
+      this.analytics.interventionEffects.avgVolatilityReduction = 
+        (this.analytics.interventionEffects.avgVolatilityReduction * 
+         (this.analytics.interventionEffects.circuitBreakerTriggered - 1) + 
+         0.3) / this.analytics.interventionEffects.circuitBreakerTriggered;
+    }
+    
     // Occasionally update the fundamental value with small random changes
     if (this.state.tick % 10 === 0) {
       const fundamentalChange = (Math.random() - 0.5) * 0.002 * this.state.market.fundamentalValue;
@@ -392,8 +408,73 @@ export class SimulationEngine {
     this.state.market.timestamp = Date.now();
     this.state.market.orderBook = this.orderBook.getSnapshot();
     
+    // Check for circuit breaker conditions
+    if (!this.state.circuitBreakerActive && 
+        this.state.market.lastPrice !== null && 
+        this.state.market.currentPrice !== null) {
+      const priceChange = Math.abs(
+        (this.state.market.currentPrice - this.state.market.lastPrice) / 
+        this.state.market.lastPrice
+      );
+      
+      if (priceChange > this.state.parameters.circuitBreakerThreshold) {
+        this.state.circuitBreakerActive = true;
+        this.state.circuitBreakerEndTime = 
+          Date.now() + this.state.parameters.circuitBreakerDuration;
+        
+        // Record circuit breaker trigger
+        this.analytics.interventionEffects.circuitBreakerTriggered++;
+      }
+    }
+    
     // Calculate and update volatility
     this.state.market.volatility = this.calculateVolatility();
+    
+    // Update volatility analytics
+    this.analytics.volatilityTimeSeries.push({
+      time: Date.now(),
+      volatility: this.state.market.volatility
+    });
+    
+    // Keep analytics time series at a reasonable length
+    if (this.analytics.volatilityTimeSeries.length > 100) {
+      this.analytics.volatilityTimeSeries.shift();
+    }
+    
+    // Update agent contribution data
+    const activeAgentTypes = new Set(this.state.agents.filter(a => a.active).map(a => a.type));
+    
+    // Simple simulation of agent contribution - in a real system this would be more sophisticated
+    Object.keys(this.analytics.agentContribution).forEach(type => {
+      const agentType = type as AgentType;
+      let contribution = 0;
+      
+      // If this type of agent is active, calculate a simulated contribution
+      if (activeAgentTypes.has(agentType)) {
+        // Different agent types have different volatility signatures
+        switch (agentType) {
+          case AgentType.MARKET_MAKER:
+            contribution = this.state.market.volatility * 0.5; // Market makers reduce volatility
+            break;
+          case AgentType.MOMENTUM_TRADER:
+            contribution = this.state.market.volatility * 1.5; // Momentum traders amplify volatility
+            break;
+          case AgentType.FUNDAMENTAL_TRADER:
+            contribution = this.state.market.volatility * 0.7; // Fundamental traders moderate volatility
+            break;
+          case AgentType.NOISE_TRADER:
+            contribution = this.state.market.volatility * 1.3; // Noise traders add volatility
+            break;
+        }
+      }
+      
+      this.analytics.agentContribution[agentType].push(contribution);
+      
+      // Keep contribution data arrays at a reasonable length
+      if (this.analytics.agentContribution[agentType].length > 100) {
+        this.analytics.agentContribution[agentType].shift();
+      }
+    });
     
     // Limit the trade history to prevent memory issues
     if (this.state.market.trades.length > 1000) {

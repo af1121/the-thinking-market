@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,8 +51,8 @@ const VolatilityAnalytics: React.FC<VolatilityAnalyticsProps> = ({
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <Tooltip 
-                formatter={(value: any) => [`${(Number(value) * 100).toFixed(2)}%`, 'Volatility']}
-                labelFormatter={(label) => `Time: ${new Date(label).toLocaleTimeString()}`}
+                formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Volatility']}
+                labelFormatter={(label: number) => `Time: ${new Date(label).toLocaleTimeString()}`}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
@@ -87,7 +86,7 @@ const VolatilityAnalytics: React.FC<VolatilityAnalyticsProps> = ({
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <Tooltip 
-                formatter={(value: any) => [`${(Number(value) * 100).toFixed(2)}%`, 'Contribution']}
+                formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Contribution']}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
