@@ -7,6 +7,8 @@ import SimulationControls from './SimulationControls';
 import MetricsPanel from './MetricsPanel';
 import MarketInterventions from './MarketInterventions';
 import TabSection from './TabSection';
+import VolatilityAnalytics from './VolatilityAnalytics';
+import RayIntegration from './RayIntegration';
 import { AgentType, MetricsData, SimulationState, VolatilityAnalytics as AnalyticsType, MarketEventType, SimulationParameters } from '@/lib/types';
 import { SimulationEngine } from '@/lib/simulationEngine';
 import { toast } from 'sonner';
@@ -237,44 +239,54 @@ const Simulation: React.FC = () => {
           analytics={analytics}
           onTabChange={setActiveTab}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 space-y-6">
-              <PriceChart 
-                trades={state.market.trades} 
-                fundamentalValue={state.market.fundamentalValue}
-                height={300}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <SimulationControls 
-                    parameters={state.parameters}
-                    speed={state.speed}
-                    onUpdateParameters={handleUpdateParameters}
-                    onSpeedChange={handleSpeedChange}
-                    onInjectEvent={handleInjectEvent}
-                  />
+          {activeTab === 'market' && (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <div className="lg:col-span-3 space-y-6">
+                <PriceChart 
+                  trades={state.market.trades} 
+                  fundamentalValue={state.market.fundamentalValue}
+                  height={300}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <SimulationControls 
+                      parameters={state.parameters}
+                      speed={state.speed}
+                      onUpdateParameters={handleUpdateParameters}
+                      onSpeedChange={handleSpeedChange}
+                      onInjectEvent={handleInjectEvent}
+                    />
+                    
+                    <MarketInterventions
+                      parameters={state.parameters}
+                      circuitBreakerActive={state.circuitBreakerActive}
+                      onUpdateParameters={handleUpdateParameters}
+                    />
+                  </div>
                   
-                  <MarketInterventions
-                    parameters={state.parameters}
-                    circuitBreakerActive={state.circuitBreakerActive}
-                    onUpdateParameters={handleUpdateParameters}
+                  <AgentControls 
+                    agents={state.agents}
+                    onAddAgent={handleAddAgent}
+                    onRemoveAgent={handleRemoveAgent}
+                    onToggleAgent={handleToggleAgent}
                   />
                 </div>
-                
-                <AgentControls 
-                  agents={state.agents}
-                  onAddAgent={handleAddAgent}
-                  onRemoveAgent={handleRemoveAgent}
-                  onToggleAgent={handleToggleAgent}
-                />
+              </div>
+              
+              <div className="lg:col-span-2">
+                <OrderBook orderBook={state.market.orderBook} />
               </div>
             </div>
-            
-            <div className="lg:col-span-2">
-              <OrderBook orderBook={state.market.orderBook} />
-            </div>
-          </div>
+          )}
+          
+          {activeTab === 'analytics' && (
+            <VolatilityAnalytics analytics={analytics} />
+          )}
+          
+          {activeTab === 'ray_abm' && (
+            <RayIntegration />
+          )}
         </TabSection>
       </main>
       
