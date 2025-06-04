@@ -23,7 +23,8 @@ import {
   Sparkles,
   Target,
   Activity,
-  BarChart3
+  BarChart3,
+  Presentation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -133,6 +134,93 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
 
   const steps: JourneyStep[] = [
     {
+      id: 'title',
+      title: 'The Thinking Market',
+      subtitle: 'Multi-Agent Reinforcement Learning in Financial Markets',
+      icon: <Presentation className="h-8 w-8" />,
+      color: 'from-indigo-600 to-purple-700',
+      content: (
+        <div className="space-y-8 text-center">
+          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
+            <Brain className="h-16 w-16 text-indigo-600" />
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                The Thinking Market
+              </h1>
+              <h2 className="text-xl md:text-2xl text-gray-600 mb-6">
+                Multi-Agent Reinforcement Learning in Financial Markets
+              </h2>
+              <div className="text-lg text-gray-700 font-medium">
+                by <span className="text-indigo-600 font-semibold">Abdullah Faheem</span>
+              </div>
+            </div>
+            
+            <div className="max-w-3xl mx-auto text-gray-600 text-lg leading-relaxed">
+              <p className="mb-4">
+                An investigation into how artificial intelligence agents learn, adapt, and interact 
+                in complex financial markets, revealing both opportunities and systemic risks.
+              </p>
+              <p>
+                This research explores the emergent behaviors of reinforcement learning agents 
+                and their profound impact on market stability, liquidity, and volatility.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                <Brain className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-blue-900 mb-2">AI-Driven Trading</h3>
+                <p className="text-blue-700 text-sm">
+                  Reinforcement learning agents that adapt and evolve their trading strategies
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+                <Activity className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-purple-900 mb-2">Market Dynamics</h3>
+                <p className="text-purple-700 text-sm">
+                  Real-time simulation of complex multi-agent market interactions
+                </p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                <Target className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-green-900 mb-2">Systemic Impact</h3>
+                <p className="text-green-700 text-sm">
+                  Understanding how AI agents affect market stability and risk
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-12 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+              <h4 className="font-semibold text-indigo-900 mb-3">Research Overview</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-indigo-600">3</div>
+                  <div className="text-indigo-800">Research Hypotheses</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">12</div>
+                  <div className="text-purple-800">Market Agents</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">100</div>
+                  <div className="text-blue-800">Training Iterations</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">500</div>
+                  <div className="text-green-800">Steps per Episode</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
       id: 'welcome',
       title: 'Multi-Agent RL Trading Research',
       subtitle: 'Investigating the systemic impact of AI agents on financial market stability',
@@ -150,7 +238,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               We developed a comprehensive market simulation using Ray-RLlib to investigate how 
               reinforcement learning agents impact market dynamics. Our research addresses critical 
-              questions about volatility, liquidity, herding behavior, and adaptation in AI-driven markets.
+              questions about volatility, liquidity, and herding behavior in AI-driven markets.
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               <div className="text-center">
@@ -159,7 +247,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                 <div className="text-xs text-gray-500">3 RL + 9 Traditional</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">4</div>
+                <div className="text-3xl font-bold text-green-600">3</div>
                 <div className="text-sm text-gray-600">Research Hypotheses</div>
                 <div className="text-xs text-gray-500">Systematically tested</div>
               </div>
@@ -370,29 +458,21 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
           {/* Research Hypotheses Preview */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Four Research Hypotheses</CardTitle>
+              <CardTitle className="text-lg">Three Research Hypotheses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="font-medium text-red-800">H1: Volatility Amplification</div>
-                    <div className="text-sm text-red-600">Do RL agents amplify market volatility?</div>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="font-medium text-blue-800">H2: Liquidity Impact</div>
-                    <div className="text-sm text-blue-600">Do RL agents reduce liquidity during stress?</div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="font-medium text-red-800">H1: Volatility Amplification</div>
+                  <div className="text-sm text-red-600">Do RL agents amplify market volatility?</div>
                 </div>
-                <div className="space-y-3">
-                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="font-medium text-purple-800">H3: Herding Behavior</div>
-                    <div className="text-sm text-purple-600">Do multiple RL agents exhibit herding?</div>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="font-medium text-green-800">H4: Adaptation Speed</div>
-                    <div className="text-sm text-green-600">Do RL agents adapt faster than traditional?</div>
-                  </div>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="font-medium text-blue-800">H2: Liquidity Impact</div>
+                  <div className="text-sm text-blue-600">Do RL agents reduce liquidity during stress?</div>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="font-medium text-purple-800">H3: Herding Behavior</div>
+                  <div className="text-sm text-purple-600">Do multiple RL agents exhibit herding?</div>
                 </div>
               </div>
               <Alert className="mt-4 bg-gray-50 border-gray-200">
@@ -675,67 +755,6 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
       )
     },
     {
-      id: 'hypothesis4',
-      title: 'Hypothesis 4: Adaptation Speed',
-      subtitle: 'Do RL agents adapt faster than traditional algorithms?',
-      icon: <Zap className="h-8 w-8" />,
-      color: 'from-green-500 to-teal-600',
-      content: (
-        <div className="space-y-6">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="font-semibold text-green-800">HYPOTHESIS CONFIRMED</span>
-            </div>
-            <p className="text-gray-600 mt-2">
-              "RL agents adapt faster than traditional algorithms"
-            </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Adaptation Speed Comparison</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={adaptationData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="metric" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="rl" fill="#10b981" name="RL Agents" />
-                  <Bar dataKey="traditional" fill="#6b7280" name="Traditional" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Alert className="bg-green-50 border-green-200">
-            <Zap className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              <strong>Superior Adaptation:</strong> RL agents demonstrate 2.5x faster adaptation speed 
-              compared to traditional algorithms, enabling rapid response to changing market conditions.
-            </AlertDescription>
-          </Alert>
-
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">2.5x</div>
-              <div className="text-sm text-green-800">Faster Adaptation</div>
-            </div>
-            <div className="bg-teal-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-teal-600">1.8x</div>
-              <div className="text-sm text-teal-800">Response Speed</div>
-            </div>
-            <div className="bg-emerald-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-emerald-600">3.2x</div>
-              <div className="text-sm text-emerald-800">Learning Rate</div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
       id: 'implications',
       title: 'Research Implications',
       subtitle: 'What this means for the future of AI in finance',
@@ -752,7 +771,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
               <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <div className="font-semibold text-green-800">H1: CONFIRMED</div>
@@ -767,11 +786,6 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
               <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <div className="font-semibold text-green-800">H3: CONFIRMED</div>
               <div className="text-sm text-green-600">0.404 Correlation</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-              <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-              <div className="font-semibold text-green-800">H4: CONFIRMED</div>
-              <div className="text-sm text-green-600">2.5x Faster Adaptation</div>
             </div>
           </div>
 
@@ -843,10 +857,6 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
               </li>
               <li className="flex items-start space-x-2">
                 <CheckCircle className="h-4 w-4 mt-0.5 text-purple-600" />
-                <span>Rapid adaptation provides competitive advantages</span>
-              </li>
-              <li className="flex items-start space-x-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-purple-600" />
                 <span>Training methodology (150 episodes) is critical for performance</span>
               </li>
             </ul>
@@ -872,7 +882,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               You've completed the research journey and discovered how RL agents 
               significantly impact financial markets through volatility amplification, 
-              liquidity reduction, herding behavior, and rapid adaptation. Now explore 
+              liquidity reduction, and herding behavior. Now explore 
               the full simulation platform to run your own experiments.
             </p>
             <div className="grid grid-cols-3 gap-4 mt-8">
@@ -958,7 +968,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-900">
-              RL Market Research Journey
+              The Thinking Market - Research Journey
             </h1>
             <Badge variant="outline" className="text-sm">
               Step {currentStep + 1} of {steps.length}
