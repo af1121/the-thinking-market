@@ -12,8 +12,10 @@ import {
   MetricsData,
   MarketEventType,
   MarketEvent,
-  VolatilityAnalytics
+  VolatilityAnalytics,
+  OrderType
 } from './types';
+import { rlAgentService, type RLAgentInfo, type MarketObservation, type RLAgentOrder } from '../services/rlAgentService';
 
 export class SimulationEngine {
   private state: SimulationState;
@@ -21,6 +23,8 @@ export class SimulationEngine {
   private priceHistory: number[] = [];
   private lastUpdateTime: number = 0;
   private timerId: number | null = null;
+  private rlAgents: Record<string, RLAgentInfo> = {};
+  private rlAgentUpdateInterval: number | null = null;
   private analytics: VolatilityAnalytics = {
     volatilityTimeSeries: [],
     agentContribution: {
@@ -42,7 +46,7 @@ export class SimulationEngine {
       fundamentalValue: 100,
       volatilityBase: 0.01,
       tickSize: 0.01,
-      timeStep: 1000, // milliseconds
+      timeStep: 100, // milliseconds - changed from 1000 to 100 for faster updates
       maxOrdersPerLevel: 50,
       maxLevels: 10,
       circuitBreakerThreshold: 0.1, // 10% price change
@@ -74,6 +78,143 @@ export class SimulationEngine {
       circuitBreakerActive: false,
       circuitBreakerEndTime: null
     };
+
+    // Start monitoring RL agents
+    this.startRLAgentMonitoring();
+  }
+
+  /**
+   * Start monitoring RL agents from the backend service
+   */
+  private startRLAgentMonitoring(): void {
+    this.rlAgentUpdateInterval = window.setInterval(async () => {
+      if (rlAgentService.isServiceConnected()) {
+        const agents = await rlAgentService.getAgents();
+        if (agents) {
+          this.rlAgents = agents;
+        }
+      }
+    }, 2000); // Update every 2 seconds
+  }
+
+  /**
+   * Stop monitoring RL agents
+   */
+  private stopRLAgentMonitoring(): void {
+    if (this.rlAgentUpdateInterval) {
+      clearInterval(this.rlAgentUpdateInterval);
+      this.rlAgentUpdateInterval = null;
+    }
+  }
+
+  /**
+   * Get current market observation for RL agents
+   */
+  private getMarketObservation(): MarketObservation {
+    return {
+      currentPrice: this.state.market.currentPrice,
+      fundamentalValue: this.state.market.fundamentalValue,
+      volatility: this.state.market.volatility,
+      orderBook: {
+        bids: this.state.market.orderBook.bids,
+        asks: this.state.market.orderBook.asks
+      },
+      priceHistory: [...this.priceHistory],
+      timestamp: this.state.market.timestamp
+    };
+  }
+
+  /**
+   * Process RL agent actions during simulation tick
+   */
+  private async processRLAgentActions(): Promise<void> {
+    if (!rlAgentService.isServiceConnected()) {
+      return;
+    }
+
+    try {
+      const marketObs = this.getMarketObservation();
+      const rlOrders = await rlAgentService.getAllActiveAgentActions(marketObs);
+
+      for (const rlOrder of rlOrders) {
+        // Convert RL agent order to simulation order
+        const order: Order = {
+          id: `rl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          agentId: rlOrder.agentId,
+          agentType: AgentType.NOISE_TRADER, // RL agents are treated as a special type of noise trader
+          side: rlOrder.side === 'buy' ? OrderSide.BUY : OrderSide.SELL,
+          quantity: rlOrder.quantity,
+          price: rlOrder.price,
+          type: OrderType.LIMIT,
+          timestamp: Date.now()
+        };
+
+        // Submit order to order book
+        const result = this.orderBook.matchOrder(order);
+
+        // Process trades
+        for (const trade of result.trades) {
+          this.state.market.trades.push(trade);
+
+          // Update market price
+          this.state.market.lastPrice = this.state.market.currentPrice;
+          this.state.market.currentPrice = trade.price;
+
+          // Record price for volatility calculation
+          this.priceHistory.push(trade.price);
+          if (this.priceHistory.length > 100) {
+            this.priceHistory.shift();
+          }
+
+          // Update RL agent state in backend
+          const agentName = rlOrder.agentId.replace('rl_', '');
+          await rlAgentService.updateAgentTrade(agentName, {
+            side: rlOrder.side,
+            quantity: trade.quantity,
+            price: trade.price,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error processing RL agent actions:', error);
+    }
+  }
+
+  /**
+   * Get active RL agents count
+   */
+  public getActiveRLAgentsCount(): number {
+    return Object.values(this.rlAgents).filter(agent => agent.active).length;
+  }
+
+  /**
+   * Get RL agents info
+   */
+  public getRLAgents(): Record<string, RLAgentInfo> {
+    return { ...this.rlAgents };
+  }
+
+  /**
+   * Activate an RL agent
+   */
+  public async activateRLAgent(agentName: string): Promise<boolean> {
+    const success = await rlAgentService.activateAgent(agentName);
+    if (success && this.rlAgents[agentName]) {
+      this.rlAgents[agentName].active = true;
+    }
+    return success;
+  }
+
+  /**
+   * Deactivate an RL agent
+   */
+  public async deactivateRLAgent(agentName: string): Promise<boolean> {
+    const success = await rlAgentService.deactivateAgent(agentName);
+    if (success && this.rlAgents[agentName]) {
+      this.rlAgents[agentName].active = false;
+    }
+    return success;
   }
 
   public getState(): SimulationState {
@@ -184,6 +325,41 @@ export class SimulationEngine {
         avgVolatilityReduction: 0
       }
     };
+
+    // Reset RL agents to initial state
+    this.resetRLAgents();
+  }
+
+  /**
+   * Reset RL agents to their initial state
+   */
+  private async resetRLAgents(): Promise<void> {
+    try {
+      if (rlAgentService.isServiceConnected()) {
+        const success = await rlAgentService.resetAgents();
+        if (success) {
+          console.log('✅ RL agents reset to initial state');
+          // Clear local RL agent cache to force refresh
+          this.rlAgents = {};
+          // Force immediate refresh of agent data
+          setTimeout(async () => {
+            const agents = await rlAgentService.getAgents();
+            if (agents) {
+              this.rlAgents = agents;
+            }
+          }, 100);
+        } else {
+          console.warn('⚠️ Failed to reset RL agents');
+        }
+      } else {
+        // If service is not connected, just clear local cache
+        this.rlAgents = {};
+      }
+    } catch (error) {
+      console.error('Error resetting RL agents:', error);
+      // Clear local cache even if reset fails
+      this.rlAgents = {};
+    }
   }
 
   public updateParameters(params: Partial<SimulationParameters>): void {
@@ -213,23 +389,34 @@ export class SimulationEngine {
     this.state.market.events.push(event);
     this.analytics.stressEvents.push(event);
 
+    // Store the price before the event for circuit breaker calculation
+    const priceBeforeEvent = this.state.market.currentPrice;
+
     switch (eventType) {
       case MarketEventType.NEWS:
         // Change in fundamental value
         this.state.market.fundamentalValue *= (1 + magnitude);
         break;
       
-      case MarketEventType.LIQUIDITY_SHOCK:
-        // Remove a significant portion of orders
-        // (Not fully implemented - would need to actually remove orders)
-        this.state.market.volatility *= (1 + magnitude);
+      case MarketEventType.LIQUIDITY_SHOCK: {
+        // Remove a significant portion of orders from the order book
+        const removalPercentage = Math.abs(magnitude);
+        this.orderBook.removeLiquidityShock(removalPercentage);
+        // Also increase volatility to reflect the liquidity crisis
+        this.state.market.volatility *= (1 + Math.abs(magnitude));
         break;
+      }
       
       case MarketEventType.PRICE_SHOCK:
         // Force a price change
         if (this.state.market.currentPrice !== null) {
           this.state.market.lastPrice = this.state.market.currentPrice;
           this.state.market.currentPrice *= (1 + magnitude);
+          // Record price for volatility calculation
+          this.priceHistory.push(this.state.market.currentPrice);
+          if (this.priceHistory.length > 100) {
+            this.priceHistory.shift();
+          }
         }
         break;
       
@@ -242,10 +429,37 @@ export class SimulationEngine {
         // Sharp price decline followed by recovery
         if (this.state.market.currentPrice !== null) {
           this.state.market.lastPrice = this.state.market.currentPrice;
-          this.state.market.currentPrice *= (1 - magnitude);
+          this.state.market.currentPrice *= (1 - Math.abs(magnitude));
+          // Record price for volatility calculation
+          this.priceHistory.push(this.state.market.currentPrice);
+          if (this.priceHistory.length > 100) {
+            this.priceHistory.shift();
+          }
           // Recovery will happen gradually through subsequent ticks
         }
         break;
+    }
+
+    // Check if this event should trigger the circuit breaker
+    if (priceBeforeEvent !== null && this.state.market.currentPrice !== null && 
+        !this.state.circuitBreakerActive && this.state.parameters.circuitBreakerThreshold > 0) {
+      
+      const priceChange = Math.abs(
+        (this.state.market.currentPrice - priceBeforeEvent) / priceBeforeEvent
+      );
+      
+      console.log(`Market event ${eventType}: Price change ${(priceChange * 100).toFixed(2)}%, threshold ${(this.state.parameters.circuitBreakerThreshold * 100).toFixed(2)}%`);
+      
+      if (priceChange > this.state.parameters.circuitBreakerThreshold) {
+        this.state.circuitBreakerActive = true;
+        this.state.circuitBreakerEndTime = 
+          Date.now() + this.state.parameters.circuitBreakerDuration;
+        
+        // Record circuit breaker trigger
+        this.analytics.interventionEffects.circuitBreakerTriggered++;
+        
+        console.log(`🚨 Circuit breaker triggered by ${eventType} event! Price change: ${(priceChange * 100).toFixed(2)}%`);
+      }
     }
   }
 
@@ -326,13 +540,13 @@ export class SimulationEngine {
     
     const timeStep = this.state.parameters.timeStep / this.state.speed;
     
-    this.timerId = window.setTimeout(() => {
-      this.tick();
+    this.timerId = window.setTimeout(async () => {
+      await this.tick();
       this.scheduleNextTick();
     }, timeStep);
   }
 
-  private tick(): void {
+  private async tick(): Promise<void> {
     const currentTime = Date.now();
     this.state.elapsedTime += currentTime - this.lastUpdateTime;
     this.lastUpdateTime = currentTime;
@@ -356,51 +570,71 @@ export class SimulationEngine {
     }
     
     // Occasionally update the fundamental value with small random changes
-    if (this.state.tick % 10 === 0) {
-      const fundamentalChange = (Math.random() - 0.5) * 0.002 * this.state.market.fundamentalValue;
+    if (this.state.tick % 5 === 0) {
+      const fundamentalChange = (Math.random() - 0.5) * 0.01 * this.state.market.fundamentalValue;
       this.state.market.fundamentalValue += fundamentalChange;
     }
     
-    // Each agent makes a decision
-    for (const agent of this.state.agents) {
-      if (!agent.active) continue;
-      
-      try {
-        const order = agent.makeDecision(this.state.market);
+    // Add some random price movement to help momentum traders
+    if (this.state.tick % 3 === 0 && this.state.market.currentPrice !== null) {
+      const randomMovement = (Math.random() - 0.5) * 0.003 * this.state.market.currentPrice;
+      this.state.market.currentPrice += randomMovement;
+      this.priceHistory.push(this.state.market.currentPrice);
+      if (this.priceHistory.length > 100) {
+        this.priceHistory.shift();
+      }
+    }
+    
+    // Only allow trading if circuit breaker is not active
+    if (!this.state.circuitBreakerActive) {
+      // Each agent makes a decision
+      for (const agent of this.state.agents) {
+        if (!agent.active) continue;
         
-        if (order) {
-          const result = this.orderBook.matchOrder(order);
+        try {
+          const order = agent.makeDecision(this.state.market);
           
-          // Process trades
-          for (const trade of result.trades) {
-            // Add the trade to the market's trade history
-            this.state.market.trades.push(trade);
+          if (order) {
+            const result = this.orderBook.matchOrder(order);
             
-            // Update agent positions
-            const buyer = this.state.agents.find(a => a.id === trade.buyAgentId);
-            const seller = this.state.agents.find(a => a.id === trade.sellAgentId);
-            
-            if (buyer) {
-              buyer.updatePositionAfterTrade(trade.price, trade.quantity, OrderSide.BUY);
-            }
-            
-            if (seller) {
-              seller.updatePositionAfterTrade(trade.price, trade.quantity, OrderSide.SELL);
-            }
-            
-            // Update current price
-            this.state.market.lastPrice = this.state.market.currentPrice;
-            this.state.market.currentPrice = trade.price;
-            
-            // Record price for volatility calculation
-            this.priceHistory.push(trade.price);
-            if (this.priceHistory.length > 100) {
-              this.priceHistory.shift();
+            // Process trades
+            for (const trade of result.trades) {
+              // Add the trade to the market's trade history
+              this.state.market.trades.push(trade);
+              
+              // Update agent positions
+              const buyer = this.state.agents.find(a => a.id === trade.buyAgentId);
+              const seller = this.state.agents.find(a => a.id === trade.sellAgentId);
+              
+              if (buyer) {
+                buyer.updatePositionAfterTrade(trade.price, trade.quantity, OrderSide.BUY);
+              }
+              
+              if (seller) {
+                seller.updatePositionAfterTrade(trade.price, trade.quantity, OrderSide.SELL);
+              }
+              
+              // Update current price
+              this.state.market.lastPrice = this.state.market.currentPrice;
+              this.state.market.currentPrice = trade.price;
+              
+              // Record price for volatility calculation
+              this.priceHistory.push(trade.price);
+              if (this.priceHistory.length > 100) {
+                this.priceHistory.shift();
+              }
             }
           }
+        } catch (error) {
+          console.error(`Error in agent ${agent.id} decision:`, error);
         }
+      }
+
+      // Process RL agent actions only if circuit breaker is not active
+      try {
+        await this.processRLAgentActions();
       } catch (error) {
-        console.error(`Error in agent ${agent.id} decision:`, error);
+        console.error('Error processing RL agent actions:', error);
       }
     }
     
@@ -411,11 +645,18 @@ export class SimulationEngine {
     // Check for circuit breaker conditions
     if (!this.state.circuitBreakerActive && 
         this.state.market.lastPrice !== null && 
-        this.state.market.currentPrice !== null) {
+        this.state.market.currentPrice !== null &&
+        this.state.parameters.circuitBreakerThreshold > 0) {
+      
       const priceChange = Math.abs(
         (this.state.market.currentPrice - this.state.market.lastPrice) / 
         this.state.market.lastPrice
       );
+      
+      // Add debug logging for circuit breaker
+      if (priceChange > 0.01) { // Log significant price changes (>1%)
+        console.log(`Tick ${this.state.tick}: Price change ${(priceChange * 100).toFixed(2)}%, threshold ${(this.state.parameters.circuitBreakerThreshold * 100).toFixed(2)}%`);
+      }
       
       if (priceChange > this.state.parameters.circuitBreakerThreshold) {
         this.state.circuitBreakerActive = true;
@@ -424,6 +665,9 @@ export class SimulationEngine {
         
         // Record circuit breaker trigger
         this.analytics.interventionEffects.circuitBreakerTriggered++;
+        
+        console.log(`🚨 Circuit breaker triggered by trading! Price change: ${(priceChange * 100).toFixed(2)}%`);
+        console.log(`Previous price: $${this.state.market.lastPrice.toFixed(3)}, Current price: $${this.state.market.currentPrice.toFixed(3)}`);
       }
     }
     
@@ -476,9 +720,10 @@ export class SimulationEngine {
       }
     });
     
-    // Limit the trade history to prevent memory issues
-    if (this.state.market.trades.length > 1000) {
-      this.state.market.trades = this.state.market.trades.slice(-1000);
+    // Limit the trade history to prevent memory issues while allowing sufficient data for research
+    // Increased from 1000 to 10000 to support longer simulation runs
+    if (this.state.market.trades.length > 10000) {
+      this.state.market.trades = this.state.market.trades.slice(-10000);
     }
   }
 

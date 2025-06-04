@@ -109,6 +109,7 @@ class MarketEnv(gym.Env):
         self.step_count = 0
         self.stress_mode = False
         self.stress_magnitude = 0.0
+        self.previous_pnl = 0.0  # Initialize PnL tracking
         
         return self._get_observation(), {}
     
@@ -167,10 +168,23 @@ class MarketEnv(gym.Env):
                 )
                 self.trades.append(trade)
                 
-                # Reward based on price movement prediction
+                # Better reward: focus on profitable trading
+                base_reward = 0.05  # Small reward for taking action
+                
+                # Reward based on price movement prediction (next step)
                 if len(self.price_history) > 1:
                     price_change = self.current_price - self.price_history[-2]
-                    reward = price_change * order_size  # Profit if price goes up
+                    # Scale reward to make it competitive with holding
+                    prediction_reward = price_change * order_size * 2.0  # Increased scale
+                    reward = base_reward + prediction_reward
+                else:
+                    reward = base_reward
+                
+                # Bonus for successful trading (if price goes up after buying)
+                if len(self.price_history) > 2:
+                    recent_trend = self.current_price - self.price_history[-3]
+                    if recent_trend > 0:  # Price trending up
+                        reward += 0.1  # Trend following bonus
                 
         elif action == OrderSide.SELL.value:
             if self.inventory >= order_size:
@@ -189,14 +203,58 @@ class MarketEnv(gym.Env):
                 )
                 self.trades.append(trade)
                 
+                # Better reward: focus on profitable trading
+                base_reward = 0.05  # Small reward for taking action
+                
                 # Reward based on price movement prediction
                 if len(self.price_history) > 1:
                     price_change = self.price_history[-2] - self.current_price
-                    reward = price_change * order_size  # Profit if price goes down
+                    # Scale reward to make it competitive with holding
+                    prediction_reward = price_change * order_size * 2.0  # Increased scale
+                    reward = base_reward + prediction_reward
+                else:
+                    reward = base_reward
+                
+                # Bonus for successful trading (if price goes down after selling)
+                if len(self.price_history) > 2:
+                    recent_trend = self.current_price - self.price_history[-3]
+                    if recent_trend < 0:  # Price trending down
+                        reward += 0.1  # Trend following bonus
+            else:
+                # Penalty for trying to sell without inventory
+                reward = -0.05
+                
+        elif action == OrderSide.HOLD.value:
+            # Make HOLD much less attractive
+            reward = -0.01  # Negative reward for holding
+            
+            # Only small bonus for holding during extreme volatility
+            if self.volatility > 0.1:  # Very high threshold
+                reward = 0.001
+            
+            # Strong penalty for holding too long without trading
+            if len(self.trades) == 0 and self.step_count > 20:
+                reward -= 0.05  # Strong penalty for inactivity
+            elif len(self.trades) == 0 and self.step_count > 50:
+                reward -= 0.1   # Even stronger penalty
         
-        # Add inventory penalty to encourage balanced trading
-        inventory_penalty = -0.001 * abs(self.inventory)
+        # Smaller inventory penalty
+        inventory_penalty = -0.00005 * abs(self.inventory)
         reward += inventory_penalty
+        
+        # Enhanced PnL-based reward component
+        current_pnl = self._calculate_pnl()
+        if hasattr(self, 'previous_pnl'):
+            pnl_change = current_pnl - self.previous_pnl
+            reward += pnl_change * 0.1  # Increased weight on PnL improvement
+        self.previous_pnl = current_pnl
+        
+        # Trading activity bonus
+        if len(self.trades) > 0:
+            # Small bonus for being active trader
+            recent_trades = [t for t in self.trades if t.timestamp > self.step_count - 10]
+            if len(recent_trades) > 0:
+                reward += 0.002 * len(recent_trades)  # Reward recent activity
         
         return reward
     

@@ -118,8 +118,8 @@ export class MomentumTraderAgent extends TradingAgent {
   constructor(
     id: string,
     parameters: Record<string, number> = {
-      lookbackPeriod: 10,     // How many price points to consider
-      threshold: 0.001,       // Minimum price change to trigger a trade
+      lookbackPeriod: 5,      // Reduced from 10 to 5 - less history needed
+      threshold: 0.0005,      // Reduced from 0.001 to 0.0005 (0.05% instead of 0.1%)
       orderSize: 10,          // Units to trade
       maxPositionSize: 100    // Maximum inventory (long or short)
     }
@@ -134,8 +134,8 @@ export class MomentumTraderAgent extends TradingAgent {
     this.priceHistory.push(state.currentPrice);
     
     const {
-      lookbackPeriod = 10,
-      threshold = 0.001,
+      lookbackPeriod = 5,     // Updated default
+      threshold = 0.0005,     // Updated default
       orderSize = 10,
       maxPositionSize = 100
     } = this.parameters;
@@ -182,7 +182,7 @@ export class FundamentalTraderAgent extends TradingAgent {
     id: string,
     parameters: Record<string, number> = {
       valuationNoise: 0.05,    // Random noise in valuation (percentage)
-      thresholdPercentage: 0.02, // Minimum percentage difference to trigger a trade
+      thresholdPercentage: 0.005, // Reduced from 0.02 to 0.005 (0.5% instead of 2%)
       orderSize: 10,           // Units to trade
       maxPositionSize: 100     // Maximum inventory (long or short)
     }
@@ -195,7 +195,7 @@ export class FundamentalTraderAgent extends TradingAgent {
 
     const {
       valuationNoise = 0.05,
-      thresholdPercentage = 0.02,
+      thresholdPercentage = 0.005, // Updated default
       orderSize = 10,
       maxPositionSize = 100
     } = this.parameters;

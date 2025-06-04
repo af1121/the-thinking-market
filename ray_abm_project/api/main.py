@@ -21,7 +21,7 @@ app = FastAPI(title="Ray ABM Trading Simulation API", version="1.0.0")
 # Add CORS middleware to allow React frontend to connect
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8082"],  # React dev servers
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:8082", "http://localhost:8084"],  # React dev servers
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -293,19 +293,10 @@ async def load_trained_agent(checkpoint_path: str):
 async def start_training(background_tasks: BackgroundTasks, request: TrainingRequest):
     """Start training a new RL agent in the background"""
     try:
-        # Import training module
-        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'training'))
-        from train_agents import RLTrainer
-        
-        # Create trainer
-        trainer = RLTrainer(
-            algorithm=request.algorithm,
-            num_workers=request.num_workers,
-            training_iterations=request.training_iterations
-        )
+        print(f"Starting {request.algorithm} training with {request.num_workers} workers...")
         
         # Start training in background
-        background_tasks.add_task(run_training, trainer)
+        background_tasks.add_task(run_training, request)
         
         return {
             "status": "training_started",
@@ -318,17 +309,191 @@ async def start_training(background_tasks: BackgroundTasks, request: TrainingReq
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start training: {str(e)}")
 
-async def run_training(trainer):
+async def run_training(request: TrainingRequest):
     """Background task for training RL agent"""
     try:
-        results, checkpoint_path = trainer.train()
-        print(f"Training completed. Best checkpoint: {checkpoint_path}")
+        print(f"Starting training with algorithm: {request.algorithm}")
         
-        # Automatically load the trained agent
-        simulation_state["rl_agent"] = trainer.algo
+        # Ensure Ray is initialized
+        if not ray.is_initialized():
+            ray.init(ignore_reinit_error=True)
+            print("Ray initialized for training")
+        
+        # Re-register the environment to ensure it's available
+        def env_creator(env_config):
+            return MarketEnv(config=env_config)
+        
+        register_env("MarketEnv", env_creator)
+        print("Environment registered successfully")
+        
+        from ray.rllib.algorithms.ppo import PPOConfig
+        from ray.rllib.algorithms.dqn import DQNConfig
+        from ray.rllib.algorithms.sac import SACConfig
+        
+        # Environment configuration
+        env_config = {
+            'max_steps': 1000,
+            'initial_price': 100.0,
+            'fundamental_value': 100.0,
+            'tick_size': 0.01,
+            'max_inventory': 100,
+            'initial_cash': 10000.0
+        }
+        
+        print(f"Environment config: {env_config}")
+        
+        # Test environment creation
+        try:
+            test_env = MarketEnv(config=env_config)
+            test_obs, _ = test_env.reset()
+            print(f"Environment test successful, observation shape: {test_obs.shape}")
+        except Exception as e:
+            print(f"Environment test failed: {e}")
+            raise
+        
+        # Select algorithm configuration
+        config = None
+        if request.algorithm == "PPO":
+            config = (
+                PPOConfig()
+                .environment("MarketEnv", env_config=env_config)
+                .framework("torch")
+                .api_stack(
+                    enable_rl_module_and_learner=False,
+                    enable_env_runner_and_connector_v2=False
+                )
+                .rollouts(num_rollout_workers=0)  # Use 0 workers for simplicity
+                .training(
+                    train_batch_size=2000,
+                    sgd_minibatch_size=128,
+                    num_sgd_iter=5,
+                    lr=3e-4,
+                    gamma=0.99,
+                    lambda_=0.95,
+                    clip_param=0.2,
+                    vf_loss_coeff=0.5,
+                    entropy_coeff=0.01,
+                    model={
+                        "fcnet_hiddens": [128, 128],
+                        "fcnet_activation": "relu",
+                    }
+                )
+                .resources(num_gpus=0)
+            )
+        elif request.algorithm == "DQN":
+            config = (
+                DQNConfig()
+                .environment("MarketEnv", env_config=env_config)
+                .framework("torch")
+                .api_stack(
+                    enable_rl_module_and_learner=False,
+                    enable_env_runner_and_connector_v2=False
+                )
+                .rollouts(num_rollout_workers=0)
+                .training(
+                    lr=1e-4,
+                    gamma=0.99,
+                    target_network_update_freq=500,
+                    train_batch_size=32,
+                    replay_buffer_config={"capacity": 50000},
+                    model={
+                        "fcnet_hiddens": [128, 128],
+                        "fcnet_activation": "relu",
+                    }
+                )
+                .resources(num_gpus=0)
+            )
+        elif request.algorithm == "SAC":
+            config = (
+                SACConfig()
+                .environment("MarketEnv", env_config=env_config)
+                .framework("torch")
+                .api_stack(
+                    enable_rl_module_and_learner=False,
+                    enable_env_runner_and_connector_v2=False
+                )
+                .rollouts(num_rollout_workers=0)
+                .training(
+                    lr=3e-4,
+                    gamma=0.99,
+                    tau=0.005,
+                    target_entropy="auto",
+                    train_batch_size=256,
+                    replay_buffer_config={"capacity": 100000},
+                    model={
+                        "fcnet_hiddens": [128, 128],
+                        "fcnet_activation": "relu",
+                    }
+                )
+                .resources(num_gpus=0)
+            )
+        else:
+            raise ValueError(f"Unsupported algorithm: {request.algorithm}")
+        
+        if config is None:
+            raise ValueError("Failed to create algorithm configuration")
+        
+        print(f"Algorithm configuration created for {request.algorithm}")
+        
+        # Build the algorithm with error handling
+        try:
+            print("Building algorithm...")
+        algo = config.build()
+            if algo is None:
+                raise ValueError("Algorithm build returned None")
+            print(f"Algorithm built successfully: {type(algo)}")
+        except Exception as e:
+            print(f"Failed to build algorithm: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+        
+        print(f"Training {request.algorithm} for {request.training_iterations} iterations...")
+        
+        # Create checkpoints directory
+        os.makedirs("checkpoints", exist_ok=True)
+        
+        # Training loop
+        best_reward = float('-inf')
+        best_checkpoint = None
+        
+        for i in range(request.training_iterations):
+            try:
+            result = algo.train()
+            
+            # Track best performance
+            episode_reward_mean = result.get("episode_reward_mean", 0)
+            if episode_reward_mean > best_reward:
+                best_reward = episode_reward_mean
+                
+                # Save checkpoint
+                checkpoint_dir = f"checkpoints/{request.algorithm}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                best_checkpoint = algo.save(checkpoint_dir)
+                print(f"New best checkpoint saved: {best_checkpoint}")
+            
+            if (i + 1) % 10 == 0:
+                print(f"Iteration {i + 1}/{request.training_iterations}, "
+                      f"Episode Reward Mean: {episode_reward_mean:.2f}, "
+                      f"Best: {best_reward:.2f}")
+                          
+            except Exception as e:
+                print(f"Training iteration {i+1} failed: {e}")
+                # Continue with next iteration
+                continue
+        
+        print(f"Training completed! Best checkpoint: {best_checkpoint}")
+        
+        # Automatically load the best trained agent
+        if best_checkpoint:
+            simulation_state["rl_agent"] = algo
+            print("Best trained agent loaded into simulation state")
+        
+        algo.stop()
         
     except Exception as e:
         print(f"Training failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 @app.get("/models/list")
 async def list_available_models():

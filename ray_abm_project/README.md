@@ -1,319 +1,225 @@
-# 🚀 Scalable Parallel Agent-Based Financial Market Simulation
+# 🏗️ **Ray ABM Trading Simulator**
 
-## 📋 Project Overview
+A comprehensive algorithmic trading simulator with reinforcement learning agents, built with Ray, RLlib, and React.
 
-This project implements a **scalable, distributed simulation environment** for studying financial market volatility amplification using **Deep Reinforcement Learning (RL) agents** and **Ray** for parallel computations. The simulation includes multiple trader-agent types interacting within a market environment, with a focus on studying behavior during extreme market stress conditions.
+## 🚀 **Quick Start**
 
-## 🎯 Research Question
-
-> **"How do adaptive Deep Reinforcement Learning (RL) trading agents interact with traditional algorithmic traders (Market makers, Fundamental traders, Noise traders, Momentum traders) and affect market volatility during periods of extreme market stress?"**
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React Frontend │    │  FastAPI Backend │    │   Ray Cluster   │
-│                 │◄──►│                 │◄──►│                 │
-│ • Visualization │    │ • API Endpoints │    │ • RL Training   │
-│ • Controls      │    │ • State Mgmt    │    │ • Parallel Sim  │
-│ • Analytics     │    │ • Agent Serving │    │ • Distributed   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## 🧩 Agent Types
-
-| Agent Type | Role | Behavior |
-|------------|------|----------|
-| **Market Maker** | Liquidity Provider | Places bid/ask orders around current price |
-| **Fundamental Trader** | Value-based Trading | Trades based on fundamental value deviations |
-| **Noise Trader** | Random Behavior | Adds market noise and irrationality |
-| **Momentum Trader** | Trend Following | Follows price trends and momentum |
-| **Adaptive RL Agent** | Learning Trader | Uses Deep RL to adapt strategies dynamically |
-
-## 🚀 Quick Start
-
-### 1. Environment Setup
-
+### 1. Setup Environment
 ```bash
-# Create conda environment
-conda create -n ray_abm python=3.10 -y
-conda activate ray_abm
-
 # Install dependencies
-cd ray_abm_project
 pip install -r requirements.txt
+
+# Verify installation
+python test_setup.py
 ```
 
-### 2. Start the Backend API
-
+### 2. Train an RL Agent
 ```bash
-# Start FastAPI server
+cd training
+python train.py --config standard --model standard
+```
+
+### 3. Start Backend API
+```bash
 cd api
 python main.py
-
-# API will be available at http://localhost:8000
-# API docs at http://localhost:8000/docs
 ```
 
-### 3. Train RL Agents
-
+### 4. Launch Frontend
 ```bash
-# Train a PPO agent
-cd training
-python train_agents.py
-
-# Or train different algorithms
-python -c "
-from train_agents import RLTrainer
-trainer = RLTrainer(algorithm='DQN', num_workers=4, training_iterations=100)
-trainer.train()
-"
+cd ../../  # Back to main project
+npm run dev
 ```
 
-### 4. Run Simulations
-
-```bash
-# Test the environment
-cd env
-python -c "
-from MarketEnv import MarketEnv
-env = MarketEnv()
-obs = env.reset()
-for i in range(100):
-    action = env.action_space.sample()
-    obs, reward, done, info = env.step(action)
-    if done:
-        break
-print(f'Final PnL: {info[\"pnl\"]:.2f}')
-"
-```
-
-## 📊 Market Environment
-
-The `MarketEnv` is a Gym-compatible environment with:
-
-- **Observation Space**: 13-dimensional vector including:
-  - Current price, fundamental value, volatility, spread
-  - Order book imbalance, recent returns (5 periods)
-  - Agent inventory, cash ratio
-
-- **Action Space**: Discrete(3) - [BUY, SELL, HOLD]
-
-- **Reward Function**: Based on:
-  - Profit from price prediction accuracy
-  - Inventory management penalties
-  - Risk-adjusted returns
-
-## 🎛️ API Endpoints
-
-### Simulation Control
-- `POST /simulation/start` - Start new simulation
-- `POST /simulation/stop` - Stop current simulation
-- `GET /simulation/state` - Get current market state
-- `POST /simulation/step` - Execute one simulation step
-
-### Agent Management
-- `POST /agent/action` - Get action from RL agent
-- `POST /agent/load` - Load trained agent from checkpoint
-- `GET /models/list` - List available trained models
-
-### Stress Testing
-- `POST /simulation/stress` - Inject market stress events
-- `GET /analytics/performance` - Get performance analytics
-
-### Training
-- `POST /training/start` - Start RL agent training
-
-## 🧪 Stress Test Scenarios
-
-The simulation supports various stress scenarios:
-
-```python
-stress_scenarios = {
-    "flash_crash": {
-        "stress_event": {"type": "flash_crash", "magnitude": 0.1}
-    },
-    "high_volatility": {
-        "stress_event": {"type": "volatility_spike", "magnitude": 2.0}
-    },
-    "liquidity_crisis": {
-        "stress_event": {"type": "liquidity_shock", "magnitude": 1.5}
-    }
-}
-```
-
-## 📈 Training Deep RL Agents
-
-### Supported Algorithms
-- **PPO** (Proximal Policy Optimization) - Default
-- **DQN** (Deep Q-Network)
-- **SAC** (Soft Actor-Critic)
-
-### Training Configuration
-```python
-config = {
-    'max_steps': 1000,
-    'initial_price': 100.0,
-    'fundamental_value': 100.0,
-    'num_workers': 4,
-    'training_iterations': 100
-}
-```
-
-### Example Training Script
-```python
-from training.train_agents import RLTrainer
-
-# Create trainer
-trainer = RLTrainer(
-    algorithm="PPO",
-    num_workers=4,
-    training_iterations=50
-)
-
-# Train agent
-results, checkpoint_path = trainer.train()
-
-# Evaluate agent
-from training.train_agents import evaluate_agent
-evaluate_agent(checkpoint_path, num_episodes=10)
-```
-
-## 🔬 Research Experiments
-
-### Experiment 1: Baseline Performance
-```bash
-python training/train_agents.py
-```
-
-### Experiment 2: Stress Testing
-```python
-from training.train_agents import stress_test_agent
-
-stress_scenarios = {
-    "flash_crash": {"stress_event": {"type": "flash_crash", "magnitude": 0.1}},
-    "volatility_spike": {"stress_event": {"type": "volatility_spike", "magnitude": 2.0}}
-}
-
-results = stress_test_agent(checkpoint_path, stress_scenarios)
-```
-
-### Experiment 3: Multi-Agent Interaction
-```python
-# Run simulation with multiple RL agents
-# (Implementation in progress)
-```
-
-## 📊 Key Metrics
-
-The simulation tracks various metrics for analysis:
-
-- **Market Metrics**: Price volatility, liquidity, spread
-- **Agent Metrics**: Profit & Loss, trading frequency, inventory
-- **Stress Metrics**: Volatility amplification, recovery time
-- **RL Metrics**: Reward, episode length, action distribution
-
-## 🔧 Configuration
-
-### Environment Configuration
-```python
-env_config = {
-    'max_steps': 1000,
-    'initial_price': 100.0,
-    'fundamental_value': 100.0,
-    'tick_size': 0.01,
-    'max_inventory': 100,
-    'initial_cash': 10000.0
-}
-```
-
-### Training Configuration
-```python
-training_config = {
-    'algorithm': 'PPO',
-    'num_workers': 4,
-    'training_iterations': 100,
-    'lr': 3e-4,
-    'gamma': 0.99,
-    'train_batch_size': 4000
-}
-```
-
-## 📁 Project Structure
+## 📁 **Project Structure**
 
 ```
 ray_abm_project/
-├── env/
-│   └── MarketEnv.py              # Gym-compatible market environment
-├── training/
-│   └── train_agents.py           # RL agent training scripts
-├── api/
-│   └── main.py                   # FastAPI backend
-├── results/                      # Training results and checkpoints
-├── checkpoints/                  # Saved model checkpoints
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
+├── 📚 docs/                          # Documentation
+│   └── TRAINING_GUIDE.md             # Comprehensive training guide
+├── 🤖 training/                      # RL Training System
+│   ├── train.py                      # Main training script
+│   ├── modern_train.py               # Alternative training script
+│   ├── quick_train.py                # Quick testing script
+│   ├── configs/                      # Training configurations
+│   │   └── training_config.py        # Centralized config management
+│   ├── utils/                        # Training utilities
+│   │   └── model_utils.py            # Model management functions
+│   └── archive/                      # Legacy training scripts
+├── 🌍 env/                           # Trading Environment
+│   └── MarketEnv.py                  # Gymnasium-compatible market environment
+├── 🔗 api/                           # FastAPI Backend
+│   └── main.py                       # API server with all endpoints
+├── 🤖 agents/                        # Traditional Trading Agents
+│   ├── market_maker.py               # Market making strategies
+│   ├── fundamental_trader.py         # Value-based trading
+│   ├── noise_trader.py               # Random trading behavior
+│   └── momentum_trader.py            # Trend-following strategies
+├── 💾 checkpoints/                   # Trained Model Storage
+│   ├── PPO_20250528_152947/          # Legacy model
+│   └── modern_ppo_20250528_160636/   # Latest trained model
+├── 📊 results/                       # Training Results & Analytics
+├── 📈 data/                          # Market Data & Datasets
+├── 📋 logs/                          # System Logs
+├── 🎨 visualization/                 # Plotting & Analysis Tools
+├── requirements.txt                  # Python dependencies
+├── setup.py                          # Package configuration
+└── test_setup.py                     # Installation verification
 ```
 
-## 🚀 Integration with React Frontend
+## 🎯 **Core Features**
 
-The existing React frontend can be enhanced to communicate with the Python backend:
+### 🤖 **Reinforcement Learning**
+- **PPO Algorithm**: Proximal Policy Optimization for stable training
+- **Custom Environment**: 12-dimensional observation space with market microstructure
+- **Flexible Configurations**: Quick, standard, and advanced training modes
+- **Model Management**: Automated saving, loading, and evaluation utilities
 
-```javascript
-// Example API calls
-const startSimulation = async (config) => {
-  const response = await fetch('http://localhost:8000/simulation/start', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(config)
-  });
-  return response.json();
-};
+### 🌍 **Market Environment**
+- **Realistic Trading**: Order book simulation with bid-ask spreads
+- **Market Dynamics**: Volatility, fundamental values, and price discovery
+- **Risk Management**: Position limits and transaction costs
+- **Stress Testing**: Configurable market shock scenarios
 
-const getAgentAction = async (observation) => {
-  const response = await fetch('http://localhost:8000/agent/action', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({observation})
-  });
-  return response.json();
-};
+### 🔗 **API Backend**
+- **FastAPI**: High-performance async API with automatic documentation
+- **Ray Integration**: Distributed computing for scalable simulations
+- **Real-time Control**: Start/stop simulations, inject market events
+- **Analytics**: Performance metrics, risk analysis, and market statistics
+
+### 🎨 **React Frontend**
+- **Real-time Dashboard**: Live market data and agent performance
+- **Interactive Controls**: Simulation management and parameter tuning
+- **Visualization**: Charts, graphs, and market analysis tools
+- **Model Integration**: Load and test trained RL agents
+
+## 🛠️ **Usage Examples**
+
+### Training Models
+
+```bash
+# Quick training for testing (10 iterations)
+python train.py --config quick --model small --name "test_model"
+
+# Standard training for research (50 iterations)
+python train.py --config standard --model standard
+
+# Advanced training for production (100 iterations)
+python train.py --config advanced --model large --name "production_v1"
 ```
 
-## 🔬 Research Applications
+### API Endpoints
 
-This simulation environment enables research into:
+```bash
+# Health check
+curl http://localhost:8000/health
 
-1. **Market Microstructure**: How RL agents affect bid-ask spreads and liquidity
-2. **Volatility Dynamics**: Impact of adaptive agents on market volatility
-3. **Systemic Risk**: How RL agents contribute to or mitigate market crashes
-4. **Regulatory Policy**: Testing circuit breakers and other interventions
-5. **Agent Interaction**: Emergent behaviors from multi-agent systems
+# Start simulation
+curl -X POST http://localhost:8000/simulation/start
 
-## 📚 Next Steps
+# Execute trading step
+curl -X POST http://localhost:8000/simulation/step
 
-1. **Enhanced Agent Models**: Implement more sophisticated RL architectures
-2. **Multi-Agent Training**: Train multiple RL agents simultaneously
-3. **Real Data Integration**: Use historical market data for training
-4. **Advanced Analytics**: Implement more sophisticated market analysis
-5. **Scalability**: Optimize for larger-scale simulations
+# Inject market stress
+curl -X POST http://localhost:8000/simulation/stress \
+  -H "Content-Type: application/json" \
+  -d '{"event_type": "flash_crash", "magnitude": 0.1}'
 
-## 🤝 Contributing
+# Get performance analytics
+curl http://localhost:8000/analytics/performance
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Implement your changes
-4. Add tests and documentation
-5. Submit a pull request
+### Model Management
 
-## 📄 License
+```python
+from training.utils.model_utils import list_available_models, evaluate_model
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+# List all trained models
+models = list_available_models()
+print(f"Found {len(models)} trained models")
 
-## 📞 Contact
+# Evaluate model performance
+results = evaluate_model(algo, env_config, num_episodes=10)
+print(f"Average reward: {results['avg_reward']:.2f}")
+```
 
-For questions or collaboration opportunities, please reach out to the research team.
+## 📊 **Environment Details**
+
+### Observation Space (12 dimensions)
+1. **Current Price** - Normalized market price
+2. **Fundamental Value** - Theoretical fair value  
+3. **Volatility** - Recent price volatility
+4. **Spread** - Bid-ask spread
+5. **Order Imbalance** - Market microstructure signal
+6-10. **Recent Returns** - Last 5 period returns
+11. **Inventory** - Current position (normalized)
+12. **Cash Ratio** - Available cash percentage
+
+### Action Space
+- **0**: BUY - Purchase shares
+- **1**: SELL - Sell shares
+- **2**: HOLD - No action
+
+### Reward Function
+- **Trading Profit**: Realized P&L from completed trades
+- **Inventory Penalty**: Cost for holding large positions
+- **Transaction Costs**: Bid-ask spread and trading fees
+- **Risk Adjustment**: Volatility-based risk penalties
+
+## 🔧 **Configuration**
+
+### Training Configurations
+| Config | Iterations | Batch Size | Environment Steps | Use Case |
+|--------|------------|------------|-------------------|----------|
+| `quick` | 10 | 200 | 100 | Testing, debugging |
+| `standard` | 50 | 500 | 200 | Development, research |
+| `advanced` | 100 | 1000 | 500 | Production models |
+
+### Model Architectures
+| Model | Hidden Layers | Parameters | Training Time | Use Case |
+|-------|---------------|------------|---------------|----------|
+| `small` | [32, 32] | ~3K | Fast | Quick experiments |
+| `standard` | [64, 64] | ~12K | Medium | Balanced performance |
+| `large` | [128, 128, 64] | ~35K | Slow | Best performance |
+
+## 🚀 **Advanced Features**
+
+### Multi-Agent Simulation
+- **Market Makers**: Provide liquidity with bid-ask quotes
+- **Fundamental Traders**: Trade based on value analysis
+- **Noise Traders**: Random trading for market realism
+- **Momentum Traders**: Trend-following strategies
+- **RL Agents**: Adaptive learning agents
+
+### Stress Testing
+- **Flash Crashes**: Sudden price drops
+- **Volatility Spikes**: Increased market uncertainty
+- **Liquidity Crises**: Reduced market depth
+- **News Events**: Fundamental value shocks
+
+### Analytics & Monitoring
+- **Real-time Metrics**: P&L, Sharpe ratio, drawdown
+- **Risk Analysis**: VaR, position concentration
+- **Market Statistics**: Volume, volatility, correlations
+- **Agent Performance**: Individual and comparative analysis
+
+## 📚 **Documentation**
+
+- **[Training Guide](docs/TRAINING_GUIDE.md)**: Comprehensive RL training documentation
+- **API Documentation**: Available at `http://localhost:8000/docs` when server is running
+- **Environment Specification**: See `env/MarketEnv.py` for detailed implementation
+
+## 🤝 **Contributing**
+
+1. **Code Organization**: Follow the established directory structure
+2. **Configuration**: Use the centralized config system in `training/configs/`
+3. **Documentation**: Update relevant docs when adding features
+4. **Testing**: Verify changes with `python test_setup.py`
+
+## 📄 **License**
+
+This project is for research and educational purposes. See individual component licenses for details.
 
 ---
 
-**Happy Trading! 🚀📈** 
+**Built with**: Ray 2.46.0, RLlib, FastAPI, React, TypeScript, Gymnasium 

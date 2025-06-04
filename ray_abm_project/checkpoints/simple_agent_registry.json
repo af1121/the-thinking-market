@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-05-31T15:26:39.352940",
+  "agents": {
+    "momentum_agent": {
+      "path": "../checkpoints/momentum_agent_20250531_152637.pkl",
+      "best_reward": 9.894831292893208,
+      "strategy": {
+        "aggressive": true,
+        "momentum": true
+      }
+    },
+    "mean_reversion_agent": {
+      "path": "../checkpoints/mean_reversion_agent_20250531_152638.pkl",
+      "best_reward": 8.659090922800688,
+      "strategy": {
+        "risk_averse": true
+      }
+    },
+    "adaptive_agent": {
+      "path": "../checkpoints/adaptive_agent_20250531_152639.pkl",
+      "best_reward": 7.496175262882909,
+      "strategy": {}
+    }
+  },
+  "training_method": "simple_pytorch"
+}

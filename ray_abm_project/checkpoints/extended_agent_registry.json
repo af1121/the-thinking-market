@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-05-31T14:40:55.700845",
+  "agents": {
+    "momentum_agent_pro": {
+      "path": "../checkpoints/momentum_agent_pro_extended_20250531_144006.pkl",
+      "best_reward": 0.15405509836373946,
+      "total_episodes": 700,
+      "strategy": {
+        "aggressive": true,
+        "momentum": true
+      }
+    },
+    "mean_reversion_agent_pro": {
+      "path": "../checkpoints/mean_reversion_agent_pro_extended_20250531_144027.pkl",
+      "best_reward": 0.07471707905397654,
+      "total_episodes": 974,
+      "strategy": {
+        "risk_averse": true
+      }
+    },
+    "adaptive_agent_pro": {
+      "path": "../checkpoints/adaptive_agent_pro_extended_20250531_144055.pkl",
+      "best_reward": 0.10134062633770308,
+      "total_episodes": 955,
+      "strategy": {}
+    }
+  },
+  "training_method": "extended_pytorch",
+  "description": "Production-quality agents with 1000-2000 episodes"
+}

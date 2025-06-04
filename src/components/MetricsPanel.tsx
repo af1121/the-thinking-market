@@ -13,12 +13,14 @@ import {
 interface MetricsPanelProps {
   metrics: MetricsData;
   currentPrice: number | null;
+  totalTrades: number;
   className?: string;
 }
 
 const MetricsPanel: React.FC<MetricsPanelProps> = ({ 
   metrics, 
   currentPrice, 
+  totalTrades,
   className = '' 
 }) => {
   const { volatility, spreadAverage, tradingVolume, orderBookDepth, fundamentalDeviation } = metrics;
@@ -29,7 +31,8 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
     volatility: 0,
     spread: 0,
     volume: 0,
-    deviation: 0
+    deviation: 0,
+    trades: 0
   });
   
   // Update previous values when current values change
@@ -39,14 +42,15 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
         volatility: volatility,
         spread: spreadAverage || 0,
         volume: tradingVolume,
-        deviation: fundamentalDeviation
+        deviation: fundamentalDeviation,
+        trades: totalTrades
       });
     }
     
     if (currentPrice !== null) {
       setPrevPrice(currentPrice);
     }
-  }, [currentPrice, volatility, spreadAverage, tradingVolume, fundamentalDeviation, prevPrice]);
+  }, [currentPrice, volatility, spreadAverage, tradingVolume, fundamentalDeviation, totalTrades, prevPrice]);
   
   // Helper to determine trend class
   const getTrendClass = (current: number, previous: number) => {
@@ -71,70 +75,83 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-3 pb-3">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col hover:shadow-md transition-all duration-300 hover:border-primary/30">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <DollarSign className="w-4 h-4" />
-              Price
-            </span>
-            <span className={`text-xl font-semibold mt-1 ${currentPrice && prevPrice ? getTrendClass(currentPrice, prevPrice) : ''}`}>
+        <div className="space-y-3">
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Price</span>
+            </div>
+            <div className={`text-lg font-semibold ${currentPrice && prevPrice ? getTrendClass(currentPrice, prevPrice) : ''}`}>
               <span className="flex items-center gap-1">
                 {currentPrice ? currentPrice.toFixed(2) : '-'}
                 {currentPrice && prevPrice && getTrendIcon(currentPrice, prevPrice)}
               </span>
-            </span>
+            </div>
           </div>
           
-          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col hover:shadow-md transition-all duration-300 hover:border-primary/30">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <Activity className="w-4 h-4" />
-              Volatility
-            </span>
-            <span className={`text-xl font-semibold mt-1 ${getTrendClass(volatility, prevValues.volatility)}`}>
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Volatility</span>
+            </div>
+            <div className={`text-lg font-semibold ${getTrendClass(volatility, prevValues.volatility)}`}>
               <span className="flex items-center gap-1">
                 {(volatility * 100).toFixed(2)}%
                 {getTrendIcon(volatility, prevValues.volatility)}
               </span>
-            </span>
+            </div>
           </div>
           
-          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col hover:shadow-md transition-all duration-300 hover:border-primary/30">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <Percent className="w-4 h-4" />
-              Spread
-            </span>
-            <span className={`text-xl font-semibold mt-1 ${spreadAverage !== null && prevValues.spread !== null ? getTrendClass(spreadAverage, prevValues.spread) : ''}`}>
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <Percent className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Spread</span>
+            </div>
+            <div className={`text-lg font-semibold ${spreadAverage !== null && prevValues.spread !== null ? getTrendClass(spreadAverage, prevValues.spread) : ''}`}>
               <span className="flex items-center gap-1">
                 {spreadAverage !== null ? spreadAverage.toFixed(3) : '-'}
                 {spreadAverage !== null && prevValues.spread !== null && getTrendIcon(spreadAverage, prevValues.spread)}
               </span>
-            </span>
+            </div>
           </div>
           
-          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col hover:shadow-md transition-all duration-300 hover:border-primary/30">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <BarChart2 className="w-4 h-4" />
-              Volume
-            </span>
-            <span className={`text-xl font-semibold mt-1 ${getTrendClass(tradingVolume, prevValues.volume)}`}>
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <BarChart2 className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Volume</span>
+            </div>
+            <div className={`text-lg font-semibold ${getTrendClass(tradingVolume, prevValues.volume)}`}>
               <span className="flex items-center gap-1">
                 {tradingVolume}
                 {getTrendIcon(tradingVolume, prevValues.volume)}
               </span>
-            </span>
+            </div>
           </div>
           
-          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex flex-col hover:shadow-md transition-all duration-300 hover:border-primary/30">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <TrendingDown className="w-4 h-4" />
-              Deviation
-            </span>
-            <span className={`text-xl font-semibold mt-1 ${getTrendClass(fundamentalDeviation, prevValues.deviation)}`}>
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Total Trades</span>
+            </div>
+            <div className={`text-lg font-semibold ${getTrendClass(totalTrades, prevValues.trades)}`}>
+              <span className="flex items-center gap-1">
+                {totalTrades.toLocaleString()}
+                {getTrendIcon(totalTrades, prevValues.trades)}
+              </span>
+            </div>
+          </div>
+          
+          <div className="p-3 rounded-md border border-border/40 bg-background/50 flex justify-between items-center hover:shadow-md transition-all duration-300 hover:border-primary/30">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Deviation</span>
+            </div>
+            <div className={`text-lg font-semibold ${getTrendClass(fundamentalDeviation, prevValues.deviation)}`}>
               <span className="flex items-center gap-1">
                 {(fundamentalDeviation * 100).toFixed(2)}%
                 {getTrendIcon(fundamentalDeviation, prevValues.deviation)}
               </span>
-            </span>
+            </div>
           </div>
         </div>
       </CardContent>

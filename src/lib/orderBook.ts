@@ -1,4 +1,3 @@
-
 import { Order, OrderBookLevel, OrderBookSnapshot, OrderSide, Trade } from './types';
 
 export class OrderBook {
@@ -172,6 +171,34 @@ export class OrderBook {
   public clear(): void {
     this.bids.clear();
     this.asks.clear();
+  }
+
+  public removeLiquidityShock(removalPercentage: number): void {
+    // Remove a percentage of orders from both sides of the book
+    this.removeLiquidityFromSide(this.bids, removalPercentage);
+    this.removeLiquidityFromSide(this.asks, removalPercentage);
+  }
+
+  private removeLiquidityFromSide(priceMap: Map<number, Order[]>, removalPercentage: number): void {
+    const prices = Array.from(priceMap.keys());
+    
+    for (const price of prices) {
+      const orders = priceMap.get(price)!;
+      const ordersToRemove = Math.floor(orders.length * removalPercentage);
+      
+      // Remove orders randomly from this price level
+      for (let i = 0; i < ordersToRemove; i++) {
+        if (orders.length > 0) {
+          const randomIndex = Math.floor(Math.random() * orders.length);
+          orders.splice(randomIndex, 1);
+        }
+      }
+      
+      // If no orders left at this price level, remove the price
+      if (orders.length === 0) {
+        priceMap.delete(price);
+      }
+    }
   }
 
   private getLevels(priceMap: Map<number, Order[]>, isBid: boolean, limit: number): OrderBookLevel[] {
