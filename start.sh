@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Algorithmic Trading Simulator..."
+echo "🚀 Starting The Thinking Market..."
 echo ""
 
 # Check if Node.js is installed
@@ -16,7 +16,7 @@ if [ ! -d "node_modules" ]; then
 fi
 
 echo "🎯 Starting frontend in demo mode..."
-echo "Visit http://localhost:5173 to access the trading simulator"
+echo "Visit http://localhost:5173 to access The Thinking Market"
 echo ""
 echo "💡 To enable RL agents:"
 echo "   1. Open a new terminal"

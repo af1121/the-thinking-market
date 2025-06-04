@@ -207,84 +207,12 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                   <div className="text-purple-800">Market Agents</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">100</div>
-                  <div className="text-blue-800">Training Iterations</div>
+                  <div className="text-2xl font-bold text-blue-600">RL</div>
+                  <div className="text-blue-800">Learning Agents</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">500</div>
-                  <div className="text-green-800">Steps per Episode</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'welcome',
-      title: 'Multi-Agent RL Trading Research',
-      subtitle: 'Investigating the systemic impact of AI agents on financial market stability',
-      icon: <BookOpen className="h-8 w-8" />,
-      color: 'from-blue-500 to-purple-600',
-      content: (
-        <div className="space-y-6 text-center">
-          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
-            <Brain className="h-12 w-12 text-blue-600" />
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-gray-900">
-              Ray-RLlib Multi-Agent Market Simulation
-            </h3>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We developed a comprehensive market simulation using Ray-RLlib to investigate how 
-              reinforcement learning agents impact market dynamics. Our research addresses critical 
-              questions about volatility, liquidity, and herding behavior in AI-driven markets.
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">12</div>
-                <div className="text-sm text-gray-600">Total Agents</div>
-                <div className="text-xs text-gray-500">3 RL + 9 Traditional</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">3</div>
-                <div className="text-sm text-gray-600">Research Hypotheses</div>
-                <div className="text-xs text-gray-500">Systematically tested</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">100</div>
-                <div className="text-sm text-gray-600">Training Iterations</div>
-                <div className="text-xs text-gray-500">PPO algorithm</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600">500</div>
-                <div className="text-sm text-gray-600">Steps per Episode</div>
-                <div className="text-xs text-gray-500">Extended sessions</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-3">Research Framework</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-800"><strong>Multi-Agent Environment:</strong> Realistic order matching engine</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-800"><strong>RL Architecture:</strong> PPO with 512-256-128 networks</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-800"><strong>Market Structure:</strong> Continuous trading with real spreads</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-800"><strong>Statistical Rigor:</strong> Comprehensive hypothesis testing</span>
+                  <div className="text-2xl font-bold text-green-600">PPO</div>
+                  <div className="text-green-800">Algorithm Used</div>
                 </div>
               </div>
             </div>
@@ -325,16 +253,12 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                     <span className="text-sm text-green-700">Proximal Policy Optimization (PPO)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">Network:</span>
-                    <span className="text-sm text-green-700">512-256-128 layers</span>
+                    <span className="text-sm font-medium">Network Layers:</span>
+                    <span className="text-sm text-green-700">Deep neural network</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Learning Rate:</span>
                     <span className="text-sm text-green-700">5e-5 (optimized)</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Training Iterations:</span>
-                    <span className="text-sm text-green-700">100 iterations</span>
                   </div>
                 </div>
                 <div className="pt-2 border-t border-green-200">
@@ -429,8 +353,8 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-white rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">100</div>
-                  <div className="text-sm text-green-800">Training Iterations</div>
+                  <div className="text-2xl font-bold text-green-600">PPO</div>
+                  <div className="text-sm text-green-800">Algorithm Used</div>
                   <div className="text-xs text-gray-600 mt-1">Convergence achieved</div>
                 </div>
                 <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
@@ -449,7 +373,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
                   <strong>Training Success:</strong> All RL agents successfully learned profitable trading strategies 
-                  through 100 iterations, demonstrating consistent convergence and performance improvement.
+                  using PPO algorithm, demonstrating consistent convergence and performance improvement.
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -479,7 +403,7 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                 <Activity className="h-4 w-4 text-gray-600" />
                 <AlertDescription className="text-gray-800">
                   <strong>Systematic Testing:</strong> Each hypothesis was rigorously tested using statistical 
-                  methods with confidence intervals, p-values, and comprehensive validation across multiple episodes.
+                  methods with confidence intervals, p-values, and comprehensive validation across multiple scenarios.
                 </AlertDescription>
               </Alert>
             </CardContent>
