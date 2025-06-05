@@ -321,41 +321,6 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
           </Card>
 
           {/* Training Results Summary */}
-          <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Target className="h-5 w-5 text-green-600" />
-                <span>Training Results Summary</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-white rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">PPO</div>
-                  <div className="text-sm text-green-800">Algorithm Used</div>
-                  <div className="text-xs text-gray-600 mt-1">Convergence achieved</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
-                  <div className="text-2xl font-bold text-blue-600">511%</div>
-                  <div className="text-sm text-blue-800">Performance Improvement</div>
-                  <div className="text-xs text-gray-600 mt-1">From start to finish</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="text-2xl font-bold text-purple-600">110.2</div>
-                  <div className="text-sm text-purple-800">Avg Trades/Episode</div>
-                  <div className="text-xs text-gray-600 mt-1">Active trading behavior</div>
-                </div>
-              </div>
-              
-              <Alert className="mt-4 bg-green-50 border-green-200">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
-                  <strong>Training Success:</strong> All RL agents successfully learned profitable trading strategies 
-                  using PPO algorithm, demonstrating consistent convergence and performance improvement.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
 
           {/* Research Hypotheses Preview */}
           <Card>
