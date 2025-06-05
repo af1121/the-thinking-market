@@ -389,10 +389,6 @@ const Simulation: React.FC = () => {
                 <strong>RL Agents are Simulated:</strong> This platform demonstrates the research methodology and findings from the thesis. 
                 The "RL agents" shown are placeholder dummies in order to demonstrate the intended functionality of the platform.
               </div>
-              <div className="text-sm">
-                <strong>Research Purpose:</strong> Use this platform to understand the experimental design, replicate the methodology, 
-                or play around with your own parameters. The actual Ray-RLlib training system is not included in this demo.
-              </div>
             </div>
           </AlertDescription>
         </Alert>
