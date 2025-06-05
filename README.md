@@ -28,9 +28,9 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to see the trading simulator with traditional agents.
+Visit `http://thethinkingmarket.com` to see the trading simulator with traditional agents.
 
-### Full System with RL Agents
+### Full System with RL Agents (Still in Production)
 ```bash
 # Terminal 1: Start frontend
 npm run dev
