@@ -386,7 +386,7 @@ const Simulation: React.FC = () => {
             <div className="space-y-2">
               <div className="font-semibold">Important Notice: Demonstration Platform</div>
               <div className="text-sm">
-                <strong>RL Agents are Simulated:</strong> This platform demonstrates the research methodology and findings from the thesis. 
+                <strong>RL Agents are Simulated Unless Running Locally:</strong> This platform demonstrates the research methodology and findings from the thesis. 
                 The "RL agents" shown are placeholder dummies in order to demonstrate the intended functionality of the platform.
               </div>
             </div>
