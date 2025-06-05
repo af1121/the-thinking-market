@@ -194,28 +194,6 @@ const ResearchJourney: React.FC<ResearchJourneyProps> = ({ onComplete }) => {
                 </p>
               </div>
             </div>
-
-            <div className="mt-12 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
-              <h4 className="font-semibold text-indigo-900 mb-3">Research Overview</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-600">3</div>
-                  <div className="text-indigo-800">Research Hypotheses</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">12</div>
-                  <div className="text-purple-800">Market Agents</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">RL</div>
-                  <div className="text-blue-800">Learning Agents</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">PPO</div>
-                  <div className="text-green-800">Algorithm Used</div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )
