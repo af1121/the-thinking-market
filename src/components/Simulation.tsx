@@ -387,11 +387,11 @@ const Simulation: React.FC = () => {
               <div className="font-semibold">Important Notice: Demonstration Platform</div>
               <div className="text-sm">
                 <strong>RL Agents are Simulated:</strong> This platform demonstrates the research methodology and findings from the thesis. 
-                The "RL agents" shown are rule-based simulations that approximate the behavior patterns observed in the actual study.
+                The "RL agents" shown are placeholder dummies in order to demonstrate the intended functionality of the platform.
               </div>
               <div className="text-sm">
                 <strong>Research Purpose:</strong> Use this platform to understand the experimental design, replicate the methodology, 
-                or extend the research with your own parameters. The actual Ray-RLlib training system is not included in this demo.
+                or play around with your own parameters. The actual Ray-RLlib training system is not included in this demo.
               </div>
             </div>
           </AlertDescription>
@@ -471,25 +471,6 @@ const Simulation: React.FC = () => {
           onSpeedChange={handleSpeedChange}
           onInjectEvent={handleInjectEvent}
         />
-        
-        {/* Demo Notice */}
-        <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <Bot className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold">🤖 Demo Mode: AI Agents Simulated</div>
-                <div className="text-sm mt-1">
-                  RL agents show simulated performance data for demonstration purposes. 
-                  In production, these would be real trained neural networks making live trading decisions.
-                </div>
-              </div>
-              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 ml-4">
-                DEMO
-              </Badge>
-            </div>
-          </AlertDescription>
-        </Alert>
         
         {/* Main Simulation Interface */}
         <Tabs defaultValue="trading" className="w-full">
@@ -1038,44 +1019,9 @@ const Simulation: React.FC = () => {
                   Circuit Breaker Active
                 </Badge>
               )}
-              <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                Demo Mode
-              </Badge>
               <span className="text-xs">
                 {new Date().toLocaleTimeString()}
               </span>
-            </div>
-          </div>
-
-          {/* Research Disclaimer */}
-          <div className="text-xs text-gray-500 border-t border-gray-100 pt-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-1">
-                  <AlertTriangle className="h-3 w-3 text-yellow-500" />
-                  <span><strong>Research Demo:</strong> RL agents are simulated approximations</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <BookOpen className="h-3 w-3 text-blue-500" />
-                  <span>Based on multi-agent RL trading thesis research</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <FlaskConical className="h-3 w-3 text-purple-500" />
-                  <span>Interactive Demo Platform</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3 text-xs">
-                <button className="text-blue-600 hover:text-blue-800 underline">
-                  View Methodology
-                </button>
-                <button className="text-purple-600 hover:text-purple-800 underline">
-                  Research Paper
-                </button>
-                <button className="text-green-600 hover:text-green-800 underline">
-                  Export Data
-                </button>
-              </div>
             </div>
           </div>
         </div>
