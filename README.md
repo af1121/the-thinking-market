@@ -83,7 +83,7 @@ All hypotheses were tested using:
 
 ## 🌟 Live Demo
 
-Experience the research platform: [The Thinking Market](https://deeplearningtradingsimdemo.vercel.app)
+Experience the research platform: [The Thinking Market](https://thethinkingmarket.com)
 
 ## 📚 Research Impact
 
